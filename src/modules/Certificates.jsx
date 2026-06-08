@@ -3,6 +3,7 @@ import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
 import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage, ViewToggle, ListView } from '../components/ui.jsx'
 import GenerateDialog from '../components/GenerateDialog.jsx'
+import EditableField from '../components/EditableField.jsx'
 import { IconPlus, IconDoc, IconCheck, IconRoute } from '../components/icons.jsx'
 import { fmtMoney, fmtDate, calcPremium, computeWording, uid, SEAS } from '../lib/domain.js'
 import { CARGO_CONDITIONS, CANCEL_NOTICE_HOURS } from '../data/seed.js'
@@ -25,14 +26,16 @@ function Src({ type }) {
   return <Tag color={M.c}>{M.t}</Tag>
 }
 
-function Row({ label, src, children }) {
+function Row({ label, src, edit, children }) {
   return (
-    <div className="flex flex-col gap-1 border-t border-ink-900/[0.05] py-2.5 first:border-t-0 first:pt-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col gap-1 border-t border-ink-900/[0.05] py-1.5 first:border-t-0 first:pt-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+      <div className="flex flex-wrap items-center gap-2 sm:pt-1.5">
         <span className="text-[12.5px] font-bold text-ink-500">{label}</span>
         <Src type={src} />
       </div>
-      <div className="text-[13.5px] font-semibold text-ink-900 sm:max-w-[55%] sm:text-right">{children}</div>
+      <div className="text-[13.5px] font-semibold text-ink-900 sm:flex sm:max-w-[58%] sm:justify-end sm:text-right">
+        {edit ? <EditableField {...edit} /> : <div className="px-2.5 py-1">{children}</div>}
+      </div>
     </div>
   )
 }
@@ -68,14 +71,24 @@ function Info({ label, value }) {
   )
 }
 
+const CURRENCIES = [
+  { value: 'USD', label: 'Доллар США (USD)' },
+  { value: 'EUR', label: 'Евро (EUR)' },
+  { value: 'RUB', label: 'Рубль (RUB)' },
+]
+
 function CertDetail({ cert, onClose, onGenerate }) {
-  const { companyById, vesselById, policyById, update } = useStore()
+  const { db, companyById, vesselById, policyById, update } = useStore()
   const company = companyById[cert.companyId]
   const vessel = vesselById[cert.vesselId]
   const policy = policyById[cert.policyId]
   const premium = calcPremium(cert.sumInsured, cert.ratePct)
   const wording = computeWording({ warCover: cert.warCover, seas: cert.seas })
   const counted = premiumCounted(cert)
+
+  const set = (patch) => update('certificates', cert.id, patch)
+  const toggleSea = (s) => set({ seas: cert.seas.includes(s) ? cert.seas.filter((x) => x !== s) : [...cert.seas, s] })
+  const vesselOpts = db.vessels.map((v) => ({ value: v.id, label: v.name }))
 
   return (
     <DetailModal
@@ -118,30 +131,40 @@ function CertDetail({ cert, onClose, onGenerate }) {
         {/* ПОЛЯ ДЛЯ СЕРТИФИКАТА */}
         <div className="card p-5">
           <p className="label mb-3">Поля для сертификата</p>
-          <Row label="№ сертификата" src="policy">{cert.number}</Row>
+          <Row label="№ сертификата" src="policy" edit={{ value: cert.number, type: 'text', onChange: (v) => set({ number: v }) }} />
           <Row label="Страхователь" src="policy">
             <div>
               <div>{company?.name}</div>
               <div className="text-[12px] font-medium text-ink-400">{company?.contactName} · {company?.contactPhone}</div>
             </div>
           </Row>
-          <Row label="Выгодоприобретатель (Beneficiary)" src="auto">{cert.beneficiary}</Row>
-          <Row label="Название груза" src="manual">{cert.cargo}</Row>
-          <Row label="Вес" src="manual">{cert.weight.toLocaleString('ru-RU')} MT</Row>
-          <Row label="Страховая сумма" src="manual">{fmtMoney(cert.sumInsured)} · {cert.currency}</Row>
-          <Row label="%" src="company">{cert.ratePct}</Row>
-          <Row label="Условия по страхованию грузов" src="manual">{cert.cargoConditions}</Row>
-          <Row label="Место отгрузки" src="auto">{cert.placeOfShipment}</Row>
-          <Row label="Место назначения" src="manual">{cert.placeOfDestination}</Row>
-          <Row label="Судно" src="vessel">{vessel ? <Tag color="cyan">{vessel.name}</Tag> : '—'}</Row>
+          <Row label="Выгодоприобретатель (Beneficiary)" src="auto" edit={{ value: cert.beneficiary, type: 'text', onChange: (v) => set({ beneficiary: v }) }} />
+          <Row label="Название груза" src="manual" edit={{ value: cert.cargo, type: 'text', onChange: (v) => set({ cargo: v }) }} />
+          <Row label="Вес, MT" src="manual" edit={{ value: cert.weight, type: 'number', onChange: (v) => set({ weight: v }) }} />
+          <Row label="Страховая сумма" src="manual" edit={{ value: cert.sumInsured, type: 'money', onChange: (v) => set({ sumInsured: v }) }} />
+          <Row label="Валюта" src="manual" edit={{ value: cert.currency, type: 'select', options: CURRENCIES, onChange: (v) => set({ currency: v }) }} />
+          <Row label="%" src="company" edit={{ value: cert.ratePct, type: 'number', onChange: (v) => set({ ratePct: v }) }} />
+          <Row label="Условия по страхованию грузов" src="manual" edit={{ value: cert.cargoConditions, type: 'select', options: CARGO_CONDITIONS.map((c) => ({ value: c, label: c })), onChange: (v) => set({ cargoConditions: v }) }} />
+          <Row label="Место отгрузки" src="auto" edit={{ value: cert.placeOfShipment, type: 'text', onChange: (v) => set({ placeOfShipment: v }) }} />
+          <Row label="Место назначения" src="manual" edit={{ value: cert.placeOfDestination, type: 'text', onChange: (v) => set({ placeOfDestination: v }) }} />
+          <Row label="Судно" src="vessel" edit={{ value: cert.vesselId, type: 'select', options: vesselOpts, onChange: (v) => set({ vesselId: v }) }} />
           <Row label="Название судна (автополе)" src="vessel">{vessel?.name}</Row>
           <Row label="IMO" src="vessel">{vessel?.imo}</Row>
           <Row label="Год постройки судна" src="vessel">{vessel?.yearBuilt}</Row>
-          <Row label="Дата коносамента" src="manual">{cert.blDate ? fmtDate(cert.blDate) : '—'}</Row>
-          <Row label="Номер коносамента" src="manual">{cert.blNumber || '—'}</Row>
-          <Row label="Кол-во часов на уведомление о прекращении" src="manual">{cert.cancelNoticeHours}</Row>
+          <Row label="Дата коносамента" src="manual" edit={{ value: cert.blDate, type: 'date', onChange: (v) => set({ blDate: v }) }} />
+          <Row label="Номер коносамента" src="manual" edit={{ value: cert.blNumber, type: 'text', onChange: (v) => set({ blNumber: v }) }} />
+          <Row label="Кол-во часов на уведомление о прекращении" src="manual" edit={{ value: cert.cancelNoticeHours, type: 'select', options: CANCEL_NOTICE_HOURS.map((h) => ({ value: h, label: h })), onChange: (v) => set({ cancelNoticeHours: v }) }} />
           <Row label="Какое море пересекает судно" src="manual">
-            <div className="flex flex-wrap justify-end gap-1">{cert.seas.map((s) => <Tag key={s} color="cyan">{s}</Tag>)}</div>
+            <div className="flex flex-wrap justify-end gap-1 px-2.5 py-1">
+              {SEAS.map((s) => {
+                const on = cert.seas.includes(s.id)
+                return (
+                  <button key={s.id} onClick={() => toggleSea(s.id)} className={`chip transition-colors ${on ? 'bg-cyan-100 text-cyan-700' : 'bg-ink-900/[0.05] text-ink-400 hover:bg-ink-900/[0.08]'}`}>
+                    {s.id}
+                  </button>
+                )
+              })}
+            </div>
           </Row>
         </div>
 
@@ -152,8 +175,8 @@ function CertDetail({ cert, onClose, onGenerate }) {
           <Row label="№ ген полиса" src="policy">{policy?.number}</Row>
           <Row label="Дата начала действия полиса" src="policy">{policy ? fmtDate(policy.startDate) : '—'}</Row>
           <Row label="Дата окончания действия полиса" src="policy">{policy ? fmtDate(policy.endDate) : '—'}</Row>
-          <Row label="Папка клиента" src="link">{cert.clientFolder || <span className="text-ink-300">не заполнено</span>}</Row>
-          <Row label="Папка с сертификатами" src="link">{cert.certFolder || <span className="text-ink-300">не заполнено</span>}</Row>
+          <Row label="Папка клиента" src="link" edit={{ value: cert.clientFolder, type: 'text', placeholder: 'вставьте ссылку…', onChange: (v) => set({ clientFolder: v }) }} />
+          <Row label="Папка с сертификатами" src="link" edit={{ value: cert.certFolder, type: 'text', placeholder: 'вставьте ссылку…', onChange: (v) => set({ certFolder: v }) }} />
         </div>
 
         {/* Вординг (расчёт) */}
@@ -161,9 +184,15 @@ function CertDetail({ cert, onClose, onGenerate }) {
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <IconRoute width={16} height={16} className="text-brand-600" />
             <p className="label">Рекомендуемый вординг</p>
-            <Tag color={cert.warCover === 'full' ? 'rose' : cert.warCover === 'partial' ? 'amber' : 'slate'}>
-              {cert.warCover === 'full' ? 'страхуем войну' : cert.warCover === 'partial' ? 'война частично' : 'без войны'}
-            </Tag>
+            <span className="ml-auto">
+              <EditableField
+                value={cert.warCover}
+                type="select"
+                align="left"
+                options={[{ value: 'full', label: 'страхуем войну' }, { value: 'none', label: 'войну не страхуем' }, { value: 'partial', label: 'война частично' }]}
+                onChange={(v) => set({ warCover: v })}
+              />
+            </span>
           </div>
           <p className="text-[14px] font-bold text-ink-900">{wording.title}</p>
           {wording.clauses.map((c, i) => (

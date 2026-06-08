@@ -3,8 +3,18 @@ import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
 import { PageHeader, Tag, IdChip, StageBadge, DetailModal, BoardPage, ViewToggle, ListView } from '../components/ui.jsx'
 import GenerateDialog from '../components/GenerateDialog.jsx'
+import EditableField from '../components/EditableField.jsx'
 import { IconDoc } from '../components/icons.jsx'
-import { fmtMoney } from '../lib/domain.js'
+import { fmtMoney, INSURERS } from '../lib/domain.js'
+
+function EField({ label, ...edit }) {
+  return (
+    <div>
+      <p className="label mb-1">{label}</p>
+      <EditableField align="left" {...edit} />
+    </div>
+  )
+}
 
 function ClaimCard({ cl, cert }) {
   return (
@@ -35,6 +45,8 @@ function Box({ label, value, accent = 'navy' }) {
 }
 
 function ClaimDetail({ cl, cert, company, onClose, onStage, onGenerate }) {
+  const { update } = useStore()
+  const set = (patch) => update('claims', cl.id, patch)
   const franchise = cert ? Math.round((cert.sumInsured * cl.franchisePct) / 100) : 0
   const belowFranchise = cl.claimAmount < franchise
   return (
@@ -65,6 +77,13 @@ function ClaimDetail({ cl, cert, company, onClose, onStage, onGenerate }) {
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[12.5px] font-semibold text-ink-400">{company?.name}</span>
           {!cl.docsComplete && <Tag color="amber" dot>нет документов</Tag>}
+        </div>
+
+        <div className="card grid gap-x-6 gap-y-3 p-5 sm:grid-cols-2">
+          <EField label="Тип убытка" value={cl.type} type="text" onChange={(v) => set({ type: v })} />
+          <EField label="Страховщик" value={cl.insurer} type="select" options={INSURERS.map((i) => ({ value: i, label: i }))} onChange={(v) => set({ insurer: v })} />
+          <EField label="Заявленный убыток" value={cl.claimAmount} type="money" onChange={(v) => set({ claimAmount: v })} />
+          <EField label="Франшиза, %" value={cl.franchisePct} type="number" onChange={(v) => set({ franchisePct: v })} />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">

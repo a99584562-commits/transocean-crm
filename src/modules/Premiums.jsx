@@ -2,7 +2,17 @@ import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
 import { PageHeader, Tag, IdChip, StageBadge, DetailModal, BoardPage, ViewToggle, ListView } from '../components/ui.jsx'
+import EditableField from '../components/EditableField.jsx'
 import { fmtMoney, fmtDate, daysUntil } from '../lib/domain.js'
+
+function EField({ label, ...edit }) {
+  return (
+    <div>
+      <p className="label mb-1">{label}</p>
+      <EditableField align="left" {...edit} />
+    </div>
+  )
+}
 
 function PremiumCard({ pr, cert, company }) {
   const d = daysUntil(pr.dueDate)
@@ -27,6 +37,8 @@ function PremiumCard({ pr, cert, company }) {
 }
 
 function PremiumDetail({ pr, cert, company, onClose, onStage }) {
+  const { update } = useStore()
+  const set = (patch) => update('premiums', pr.id, patch)
   return (
     <DetailModal
       open
@@ -47,6 +59,10 @@ function PremiumDetail({ pr, cert, company, onClose, onStage }) {
             <p className="nums text-[30px] font-extrabold tracking-tight">{fmtMoney(pr.amount)}</p>
           </div>
           <p className="text-[12px] font-medium text-brand-100">срок {fmtDate(pr.dueDate)}</p>
+        </div>
+        <div className="card grid gap-x-6 gap-y-3 p-5 sm:grid-cols-2">
+          <EField label="Сумма премии" value={pr.amount} type="money" onChange={(v) => set({ amount: v })} />
+          <EField label="Срок оплаты" value={pr.dueDate} type="date" onChange={(v) => set({ dueDate: v })} />
         </div>
         <p className="text-center text-[12.5px] font-medium text-ink-400">
           Перемещайте премию по стадиям полосой сверху: новая → счёт выставлен → оплачен.

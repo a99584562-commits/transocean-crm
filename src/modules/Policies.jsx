@@ -3,7 +3,17 @@ import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
 import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage, ViewToggle, ListView } from '../components/ui.jsx'
 import GenerateDialog from '../components/GenerateDialog.jsx'
+import EditableField from '../components/EditableField.jsx'
 import { IconPlus, IconCalendar, IconDoc } from '../components/icons.jsx'
+
+function EField({ label, ...edit }) {
+  return (
+    <div>
+      <p className="label mb-1">{label}</p>
+      <EditableField align="left" {...edit} />
+    </div>
+  )
+}
 import { fmtDate, daysUntil, suggestPolicyStage, uid, INSURERS } from '../lib/domain.js'
 
 function PolicyCard({ p, company }) {
@@ -42,10 +52,11 @@ function Info({ label, value, full }) {
 }
 
 function PolicyDetail({ p, onClose, onGenerate }) {
-  const { companyById, update } = useStore()
+  const { db, companyById, update } = useStore()
   const company = companyById[p.companyId]
   const d = daysUntil(p.endDate)
   const suggested = suggestPolicyStage(p)
+  const set = (patch) => update('policies', p.id, patch)
   return (
     <DetailModal
       open
@@ -65,12 +76,14 @@ function PolicyDetail({ p, onClose, onGenerate }) {
       }
     >
       <div className="mx-auto max-w-[760px] space-y-5">
-        <div className="card grid gap-3 p-5 sm:grid-cols-2">
-          <Info label="Груз" value={p.cargo} />
-          <Info label="Базовая ставка" value={`${p.baseRate}%`} />
-          <Info label="Начало действия" value={fmtDate(p.startDate)} />
-          <Info label="Окончание" value={`${fmtDate(p.endDate)} (${d} дн.)`} />
-          <Info label="Условия страхования" value={p.conditions} full />
+        <div className="card grid gap-x-6 gap-y-3 p-5 sm:grid-cols-2">
+          <EField label="Компания" value={p.companyId} type="select" options={db.companies.map((c) => ({ value: c.id, label: c.name }))} onChange={(v) => set({ companyId: v })} />
+          <EField label="Страховщик" value={p.insurer} type="select" options={INSURERS.map((i) => ({ value: i, label: i }))} onChange={(v) => set({ insurer: v })} />
+          <EField label="Груз" value={p.cargo} type="text" onChange={(v) => set({ cargo: v })} />
+          <EField label="Базовая ставка, %" value={p.baseRate} type="number" onChange={(v) => set({ baseRate: v })} />
+          <EField label="Начало действия" value={p.startDate} type="date" onChange={(v) => set({ startDate: v })} />
+          <EField label={`Окончание · ${d} дн.`} value={p.endDate} type="date" onChange={(v) => set({ endDate: v })} />
+          <div className="sm:col-span-2"><EField label="Условия страхования" value={p.conditions} type="textarea" onChange={(v) => set({ conditions: v })} /></div>
         </div>
 
         <div className="card p-5">
