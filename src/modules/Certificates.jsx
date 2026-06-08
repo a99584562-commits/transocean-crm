@@ -4,10 +4,37 @@ import Kanban from '../components/Kanban.jsx'
 import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage, ViewToggle, ListView } from '../components/ui.jsx'
 import GenerateDialog from '../components/GenerateDialog.jsx'
 import { IconPlus, IconDoc, IconCheck, IconRoute } from '../components/icons.jsx'
-import { fmtMoney, calcPremium, computeWording, uid, SEAS } from '../lib/domain.js'
+import { fmtMoney, fmtDate, calcPremium, computeWording, uid, SEAS } from '../lib/domain.js'
+import { CARGO_CONDITIONS, CANCEL_NOTICE_HOURS } from '../data/seed.js'
 
 function premiumCounted(cert) {
   return cert.stage !== 'Драфт' && cert.scanAttached
+}
+
+// Source badge — mirrors the Miro stickies (откуда заполняется поле).
+function Src({ type }) {
+  const M = {
+    policy: { t: 'из ген. полиса', c: 'brand' },
+    company: { t: 'из компании', c: 'violet' },
+    manual: { t: 'вручную', c: 'slate' },
+    auto: { t: 'авто при создании', c: 'teal' },
+    vessel: { t: 'из карточки судна', c: 'cyan' },
+    link: { t: 'ссылка', c: 'amber' },
+  }[type]
+  if (!M) return null
+  return <Tag color={M.c}>{M.t}</Tag>
+}
+
+function Row({ label, src, children }) {
+  return (
+    <div className="flex flex-col gap-1 border-t border-ink-900/[0.05] py-2.5 first:border-t-0 first:pt-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[12.5px] font-bold text-ink-500">{label}</span>
+        <Src type={src} />
+      </div>
+      <div className="text-[13.5px] font-semibold text-ink-900 sm:max-w-[55%] sm:text-right">{children}</div>
+    </div>
+  )
 }
 
 function CertCard({ cert, company, vessel }) {
@@ -70,34 +97,11 @@ function CertDetail({ cert, onClose, onGenerate }) {
         </div>
       }
     >
-      <div className="mx-auto max-w-[820px] space-y-5">
-        <div className="flex flex-wrap items-center gap-2">
-          {cert.seas.map((s) => <Tag key={s} color="cyan">{s}</Tag>)}
-          <Tag color={cert.warCover === 'full' ? 'rose' : cert.warCover === 'partial' ? 'amber' : 'slate'}>
-            {cert.warCover === 'full' ? 'страхуем войну' : cert.warCover === 'partial' ? 'война частично' : 'без войны'}
-          </Tag>
-        </div>
-
-        <div className="card p-4">
-          <p className="label mb-1.5">Автозаполнение из источника</p>
-          <p className="text-[13px] leading-relaxed text-ink-700">
-            Создан из полиса <b>{policy?.number}</b>. Подтянуто: компания, страховщик, условия, даты. Из компании —
-            индивидуальная ставка <b>{cert.ratePct}%</b>.
-          </p>
-        </div>
-
-        <div className="card grid gap-3 p-5 sm:grid-cols-2">
-          <Info label="Судно" value={vessel ? `${vessel.name} (${vessel.yearBuilt})` : '—'} />
-          <Info label="Вес груза" value={`${cert.weight.toLocaleString('ru-RU')} MT`} />
-          <Info label="Отправление" value={cert.placeOfShipment} />
-          <Info label="Назначение" value={cert.placeOfDestination} />
-          <Info label="Страховая сумма" value={`${fmtMoney(cert.sumInsured)} (100%)`} />
-          <Info label="Ставка" value={`${cert.ratePct}%`} />
-        </div>
-
+      <div className="mx-auto max-w-[860px] space-y-5">
+        {/* Премия (вычисляется) + скан подписанного сертификата */}
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-glow">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-100">Премия</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-100">Премия (расчёт)</p>
             <p className="nums text-[26px] font-extrabold tracking-tight">{fmtMoney(premium)}</p>
             <p className="text-[12px] font-medium text-brand-100">
               {fmtMoney(cert.sumInsured)} × {cert.ratePct}% · {counted ? 'учтена' : 'не учтена — нужен скан с печатью'}
@@ -111,10 +115,55 @@ function CertDetail({ cert, onClose, onGenerate }) {
           </button>
         </div>
 
+        {/* ПОЛЯ ДЛЯ СЕРТИФИКАТА */}
+        <div className="card p-5">
+          <p className="label mb-3">Поля для сертификата</p>
+          <Row label="№ сертификата" src="policy">{cert.number}</Row>
+          <Row label="Страхователь" src="policy">
+            <div>
+              <div>{company?.name}</div>
+              <div className="text-[12px] font-medium text-ink-400">{company?.contactName} · {company?.contactPhone}</div>
+            </div>
+          </Row>
+          <Row label="Выгодоприобретатель (Beneficiary)" src="auto">{cert.beneficiary}</Row>
+          <Row label="Название груза" src="manual">{cert.cargo}</Row>
+          <Row label="Вес" src="manual">{cert.weight.toLocaleString('ru-RU')} MT</Row>
+          <Row label="Страховая сумма" src="manual">{fmtMoney(cert.sumInsured)} · {cert.currency}</Row>
+          <Row label="%" src="company">{cert.ratePct}</Row>
+          <Row label="Условия по страхованию грузов" src="manual">{cert.cargoConditions}</Row>
+          <Row label="Место отгрузки" src="auto">{cert.placeOfShipment}</Row>
+          <Row label="Место назначения" src="manual">{cert.placeOfDestination}</Row>
+          <Row label="Судно" src="vessel">{vessel ? <Tag color="cyan">{vessel.name}</Tag> : '—'}</Row>
+          <Row label="Название судна (автополе)" src="vessel">{vessel?.name}</Row>
+          <Row label="IMO" src="vessel">{vessel?.imo}</Row>
+          <Row label="Год постройки судна" src="vessel">{vessel?.yearBuilt}</Row>
+          <Row label="Дата коносамента" src="manual">{cert.blDate ? fmtDate(cert.blDate) : '—'}</Row>
+          <Row label="Номер коносамента" src="manual">{cert.blNumber || '—'}</Row>
+          <Row label="Кол-во часов на уведомление о прекращении" src="manual">{cert.cancelNoticeHours}</Row>
+          <Row label="Какое море пересекает судно" src="manual">
+            <div className="flex flex-wrap justify-end gap-1">{cert.seas.map((s) => <Tag key={s} color="cyan">{s}</Tag>)}</div>
+          </Row>
+        </div>
+
+        {/* ИНФОРМАЦИЯ ДЛЯ СЕРТИФИКАТА */}
+        <div className="card p-5">
+          <p className="label mb-3">Информация для сертификата</p>
+          <Row label="Генеральный полис" src="policy">{policy ? <Tag color="brand">{policy.number}</Tag> : '—'}</Row>
+          <Row label="№ ген полиса" src="policy">{policy?.number}</Row>
+          <Row label="Дата начала действия полиса" src="policy">{policy ? fmtDate(policy.startDate) : '—'}</Row>
+          <Row label="Дата окончания действия полиса" src="policy">{policy ? fmtDate(policy.endDate) : '—'}</Row>
+          <Row label="Папка клиента" src="link">{cert.clientFolder || <span className="text-ink-300">не заполнено</span>}</Row>
+          <Row label="Папка с сертификатами" src="link">{cert.certFolder || <span className="text-ink-300">не заполнено</span>}</Row>
+        </div>
+
+        {/* Вординг (расчёт) */}
         <div className="card p-4">
-          <div className="mb-1 flex items-center gap-2">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
             <IconRoute width={16} height={16} className="text-brand-600" />
             <p className="label">Рекомендуемый вординг</p>
+            <Tag color={cert.warCover === 'full' ? 'rose' : cert.warCover === 'partial' ? 'amber' : 'slate'}>
+              {cert.warCover === 'full' ? 'страхуем войну' : cert.warCover === 'partial' ? 'война частично' : 'без войны'}
+            </Tag>
           </div>
           <p className="text-[14px] font-bold text-ink-900">{wording.title}</p>
           {wording.clauses.map((c, i) => (
@@ -149,6 +198,7 @@ function NewCertModal({ open, onClose }) {
     sumInsured: 1500000,
     seas: ['ЧМ'],
     warCover: 'full',
+    cargoConditions: CARGO_CONDITIONS[0],
   })
 
   const policy = policyById[form.policyId]
@@ -181,6 +231,11 @@ function NewCertModal({ open, onClose }) {
       stage: 'Драфт',
       scanAttached: false,
       beneficiary: 'TO ORDER',
+      currency: 'USD',
+      cargoConditions: form.cargoConditions || CARGO_CONDITIONS[0],
+      cancelNoticeHours: CANCEL_NOTICE_HOURS[0],
+      clientFolder: '',
+      certFolder: '',
     })
     onClose()
   }
@@ -238,6 +293,12 @@ function NewCertModal({ open, onClose }) {
             </select>
           </Field>
         </div>
+
+        <Field label="Условия по страхованию грузов">
+          <select className="field" value={form.cargoConditions} onChange={(e) => setForm((f) => ({ ...f, cargoConditions: e.target.value }))}>
+            {CARGO_CONDITIONS.map((c) => <option key={c}>{c}</option>)}
+          </select>
+        </Field>
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-glow">
           <div>

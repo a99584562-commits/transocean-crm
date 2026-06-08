@@ -27,9 +27,14 @@ export const FIELD_SOURCES = [
   { path: 'cert.beneficiary', tag: 'выгодоприобретатель', label: 'Выгодоприобретатель', group: 'Сертификат', scope: CERT },
   { path: 'cert.warCover', tag: 'покрытие_войны', label: 'Покрытие войны', group: 'Сертификат', scope: CERT },
   { path: 'cert.seas', tag: 'моря', label: 'Моря маршрута', group: 'Сертификат', scope: CERT },
+  { path: 'cert.currency', tag: 'валюта', label: 'Валюта', group: 'Сертификат', scope: CERT },
+  { path: 'cert.cargoConditions', tag: 'условия_груза', label: 'Условия по страхованию грузов', group: 'Сертификат', scope: CERT },
   { path: 'cert.wording', tag: 'вординг', label: 'Вординг (формулировка)', group: 'Сертификат', scope: CERT },
   // Компания
   { path: 'company.name', tag: 'страхователь', label: 'Страхователь', group: 'Компания', scope: ALL },
+  { path: 'company.contactName', tag: 'контакт', label: 'Контактное лицо', group: 'Компания', scope: ALL },
+  { path: 'company.contactPhone', tag: 'контакт_телефон', label: 'Телефон контакта', group: 'Компания', scope: ALL },
+  { path: 'company.contactEmail', tag: 'контакт_email', label: 'Email контакта', group: 'Компания', scope: ALL },
   { path: 'company.inn', tag: 'инн', label: 'ИНН', group: 'Компания', scope: ALL },
   { path: 'company.country', tag: 'страна', label: 'Страна', group: 'Компания', scope: ALL },
   // Судно
@@ -122,8 +127,13 @@ function valueForPath(path, ctx) {
     case 'cert.beneficiary': return cert?.beneficiary || ''
     case 'cert.warCover': return WAR_LABEL[cert?.warCover] || ''
     case 'cert.seas': return (cert?.seas || []).join(', ')
+    case 'cert.currency': return cert?.currency || ''
+    case 'cert.cargoConditions': return cert?.cargoConditions || ''
     case 'cert.wording': return cert ? computeWording({ warCover: cert.warCover, seas: cert.seas }).title : ''
     case 'company.name': return company?.name || ''
+    case 'company.contactName': return company?.contactName || ''
+    case 'company.contactPhone': return company?.contactPhone || ''
+    case 'company.contactEmail': return company?.contactEmail || ''
     case 'company.inn': return company?.inn || ''
     case 'company.country': return company?.country || ''
     case 'vessel.name': return vessel ? `MV "${vessel.name.replace(/^MV /, '')}"` : ''

@@ -2,12 +2,21 @@
 // 60/30-day expiry logic and auto-renew rule are visible out of the box.
 
 export const COMPANIES = [
-  { id: 'co-1', name: 'ООО «Зерно Торг»', inn: '6164011223', rate: 0.08, country: 'Россия' },
-  { id: 'co-2', name: 'ООО «Дон-Агро»', inn: '6155099034', rate: 0.075, country: 'Россия' },
-  { id: 'co-3', name: 'ООО «Каспий Грейн»', inn: '0541022118', rate: 0.11, country: 'Россия' },
-  { id: 'co-4', name: 'Agro Export DMCC', inn: 'DMCC-44120', rate: 0.09, country: 'ОАЭ' },
-  { id: 'co-5', name: 'Black Sea Trading Co', inn: 'TR-99210', rate: 0.1, country: 'Türkiye' },
+  { id: 'co-1', name: 'ООО «Зерно Торг»', inn: '6164011223', rate: 0.08, country: 'Россия', contactName: 'Артур Темель', contactPhone: '+7 915 357-60-60', contactEmail: 'a.temel@zernotorg.ru' },
+  { id: 'co-2', name: 'ООО «Дон-Агро»', inn: '6155099034', rate: 0.075, country: 'Россия', contactName: 'Игорь Донцов', contactPhone: '+7 928 114-22-09', contactEmail: 'i.dontsov@don-agro.ru' },
+  { id: 'co-3', name: 'ООО «Каспий Грейн»', inn: '0541022118', rate: 0.11, country: 'Россия', contactName: 'Рустам Алиев', contactPhone: '+7 988 300-51-17', contactEmail: 'r.aliev@caspiangrain.ru' },
+  { id: 'co-4', name: 'Agro Export DMCC', inn: 'DMCC-44120', rate: 0.09, country: 'ОАЭ', contactName: 'Karim Hassan', contactPhone: '+971 50 442-19-88', contactEmail: 'k.hassan@agroexport.ae' },
+  { id: 'co-5', name: 'Black Sea Trading Co', inn: 'TR-99210', rate: 0.1, country: 'Türkiye', contactName: 'Mehmet Yılmaz', contactPhone: '+90 532 220-71-40', contactEmail: 'm.yilmaz@bstrade.com.tr' },
 ]
+
+// Справочник «Условия по страхованию грузов»
+export const CARGO_CONDITIONS = [
+  'Institute Cargo Clauses (A)',
+  'Institute Cargo Clauses (A) + War & Strikes',
+  'Institute Cargo Clauses (B)',
+  'Institute Cargo Clauses (C)',
+]
+export const CANCEL_NOTICE_HOURS = ['не выбрано', '48 часов', '72 часа', '7 дней']
 
 export const VESSELS = [
   { id: 'v-1', name: 'MV Kavkaz', imo: '9123456', yearBuilt: 2008, flag: 'Россия', type: 'Bulk carrier' },
@@ -133,12 +142,24 @@ export const CLAIMS = [
 
 import { builtInTemplates } from '../lib/docs.js'
 
+// Defaults for fields added to match the real Bitrix certificate card.
+function withCertDefaults(c) {
+  return {
+    currency: 'USD',
+    cargoConditions: 'Institute Cargo Clauses (A)',
+    cancelNoticeHours: 'не выбрано',
+    clientFolder: '',
+    certFolder: '',
+    ...c,
+  }
+}
+
 export function buildSeed() {
   return {
     companies: COMPANIES,
     vessels: VESSELS,
     policies: POLICIES,
-    certificates: CERTIFICATES,
+    certificates: CERTIFICATES.map(withCertDefaults),
     premiums: PREMIUMS,
     claims: CLAIMS,
     templates: builtInTemplates(),
