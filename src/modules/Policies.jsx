@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
 import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage } from '../components/ui.jsx'
-import { IconPlus, IconCalendar } from '../components/icons.jsx'
+import GenerateDialog from '../components/GenerateDialog.jsx'
+import { IconPlus, IconCalendar, IconDoc } from '../components/icons.jsx'
 import { fmtDate, daysUntil, suggestPolicyStage, uid, INSURERS } from '../lib/domain.js'
 
 function PolicyCard({ p, company }) {
@@ -40,7 +41,7 @@ function Info({ label, value, full }) {
   )
 }
 
-function PolicyDetail({ p, onClose }) {
+function PolicyDetail({ p, onClose, onGenerate }) {
   const { companyById, update } = useStore()
   const company = companyById[p.companyId]
   const d = daysUntil(p.endDate)
@@ -57,6 +58,11 @@ function PolicyDetail({ p, onClose }) {
       pipeline="policies"
       stage={p.stage}
       onStage={(s) => update('policies', p.id, { stage: s })}
+      footer={
+        <div className="mx-auto flex max-w-[760px] justify-start">
+          <button onClick={() => onGenerate(p)} className="btn-ghost ring-1 ring-ink-900/10"><IconDoc width={16} height={16} /> Сформировать документ</button>
+        </div>
+      }
     >
       <div className="mx-auto max-w-[760px] space-y-5">
         <div className="card grid gap-3 p-5 sm:grid-cols-2">
@@ -159,7 +165,9 @@ export default function Policies() {
   const { db, companyById, moveStage } = useStore()
   const [selId, setSelId] = useState(null)
   const [creating, setCreating] = useState(false)
+  const [genId, setGenId] = useState(null)
   const selected = db.policies.find((p) => p.id === selId)
+  const genRecord = db.policies.find((p) => p.id === genId)
 
   return (
     <BoardPage
@@ -179,8 +187,9 @@ export default function Policies() {
         renderCard={(p) => <PolicyCard p={p} company={companyById[p.companyId]} />}
       />
 
-      {selected && <PolicyDetail p={selected} onClose={() => setSelId(null)} />}
+      {selected && <PolicyDetail p={selected} onClose={() => setSelId(null)} onGenerate={(p) => { setSelId(null); setGenId(p.id) }} />}
       <NewPolicyModal open={creating} onClose={() => setCreating(false)} />
+      <GenerateDialog open={!!genRecord} entity="policy" record={genRecord} onClose={() => setGenId(null)} />
     </BoardPage>
   )
 }

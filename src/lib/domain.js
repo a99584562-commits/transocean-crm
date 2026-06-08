@@ -77,6 +77,14 @@ export function stageMeta(pipelineKey, stageId) {
   return { color, accent: ACCENTS[color] || ACCENTS.slate }
 }
 
+// ── Our legal entity (страховой брокер «Трансоушен») ─────────────────────────
+export const OUR = {
+  name: 'ООО «Трансоушен»',
+  inn: '7704123456',
+  address: '115035, г. Москва, ул. Садовническая, д. 14',
+  phone: '+7 (495) 120-44-08',
+}
+
 // ── Insurers & seas ──────────────────────────────────────────────────────────
 export const INSURERS = ['Ингосстрах', 'Альфастрахование', 'Энергогарант', 'АСТК', 'Энерго']
 export const SEAS = [

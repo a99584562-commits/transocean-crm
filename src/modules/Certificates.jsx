@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
 import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage } from '../components/ui.jsx'
-import CertificateDoc from '../components/CertificateDoc.jsx'
+import GenerateDialog from '../components/GenerateDialog.jsx'
 import { IconPlus, IconDoc, IconCheck, IconRoute } from '../components/icons.jsx'
 import { fmtMoney, calcPremium, computeWording, uid, SEAS } from '../lib/domain.js'
 
@@ -41,7 +41,7 @@ function Info({ label, value }) {
   )
 }
 
-function CertDetail({ cert, onClose, onOpenDoc }) {
+function CertDetail({ cert, onClose, onGenerate }) {
   const { companyById, vesselById, policyById, update } = useStore()
   const company = companyById[cert.companyId]
   const vessel = vesselById[cert.vesselId]
@@ -64,8 +64,8 @@ function CertDetail({ cert, onClose, onOpenDoc }) {
       onStage={(s) => update('certificates', cert.id, { stage: s })}
       footer={
         <div className="mx-auto flex max-w-[820px] justify-end">
-          <button onClick={() => onOpenDoc(cert)} className="btn-primary">
-            <IconDoc width={17} height={17} /> Сформировать сертификат
+          <button onClick={() => onGenerate(cert)} className="btn-primary">
+            <IconDoc width={17} height={17} /> Сформировать документ
           </button>
         </div>
       }
@@ -260,11 +260,12 @@ function NewCertModal({ open, onClose }) {
 }
 
 export default function Certificates() {
-  const { db, companyById, vesselById, policyById, moveStage } = useStore()
+  const { db, companyById, vesselById, moveStage } = useStore()
   const [selId, setSelId] = useState(null)
   const [creating, setCreating] = useState(false)
-  const [doc, setDoc] = useState(null)
+  const [genId, setGenId] = useState(null)
   const selected = db.certificates.find((c) => c.id === selId)
+  const genRecord = db.certificates.find((c) => c.id === genId)
 
   return (
     <BoardPage
@@ -285,19 +286,9 @@ export default function Certificates() {
         renderCard={(c) => <CertCard cert={c} company={companyById[c.companyId]} vessel={vesselById[c.vesselId]} />}
       />
 
-      {selected && <CertDetail cert={selected} onClose={() => setSelId(null)} onOpenDoc={(c) => { setSelId(null); setDoc(c) }} />}
+      {selected && <CertDetail cert={selected} onClose={() => setSelId(null)} onGenerate={(c) => { setSelId(null); setGenId(c.id) }} />}
       <NewCertModal open={creating} onClose={() => setCreating(false)} />
-
-      <Modal open={!!doc} onClose={() => setDoc(null)} title="Сертификат страхования" subtitle="Шаблон Ингосстраха с подстановкой данных (маски)" wide>
-        {doc && (
-          <CertificateDoc
-            cert={doc}
-            company={companyById[doc.companyId]}
-            vessel={vesselById[doc.vesselId]}
-            policy={policyById[doc.policyId]}
-          />
-        )}
-      </Modal>
+      <GenerateDialog open={!!genRecord} entity="certificate" record={genRecord} onClose={() => setGenId(null)} />
     </BoardPage>
   )
 }

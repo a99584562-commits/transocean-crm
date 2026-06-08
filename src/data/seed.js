@@ -131,6 +131,8 @@ export const CLAIMS = [
   },
 ]
 
+import { builtInTemplates } from '../lib/docs.js'
+
 export function buildSeed() {
   return {
     companies: COMPANIES,
@@ -139,5 +141,6 @@ export function buildSeed() {
     certificates: CERTIFICATES,
     premiums: PREMIUMS,
     claims: CLAIMS,
+    templates: builtInTemplates(),
   }
 }

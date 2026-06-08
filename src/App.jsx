@@ -3,7 +3,7 @@ import { StoreProvider, useStore } from './lib/store.jsx'
 import Gate from './components/Gate.jsx'
 import {
   IconDashboard, IconPolicy, IconCertificate, IconVessel,
-  IconPremium, IconClaim, IconWording, IconSearch, IconReset,
+  IconPremium, IconClaim, IconWording, IconSearch, IconReset, IconDoc,
 } from './components/icons.jsx'
 import Dashboard from './modules/Dashboard.jsx'
 import Policies from './modules/Policies.jsx'
@@ -12,6 +12,7 @@ import Vessels from './modules/Vessels.jsx'
 import Premiums from './modules/Premiums.jsx'
 import Claims from './modules/Claims.jsx'
 import Wording from './modules/Wording.jsx'
+import Templates from './modules/Templates.jsx'
 
 const NAV = [
   { id: 'dashboard', label: 'Обзор', icon: IconDashboard, group: 'Главное' },
@@ -20,6 +21,7 @@ const NAV = [
   { id: 'vessels', label: 'Суда', icon: IconVessel, group: 'Операции' },
   { id: 'premiums', label: 'Премии', icon: IconPremium, group: 'Финансы' },
   { id: 'claims', label: 'Убытки', icon: IconClaim, group: 'Финансы' },
+  { id: 'templates', label: 'Шаблоны', icon: IconDoc, group: 'Инструменты' },
   { id: 'wording', label: 'Подбор вординга', icon: IconWording, group: 'Инструменты' },
 ]
 
@@ -30,6 +32,7 @@ const VIEWS = {
   vessels: Vessels,
   premiums: Premiums,
   claims: Claims,
+  templates: Templates,
   wording: Wording,
 }
 

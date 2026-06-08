@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
 import { PageHeader, Tag, IdChip, DetailModal, BoardPage } from '../components/ui.jsx'
+import GenerateDialog from '../components/GenerateDialog.jsx'
+import { IconDoc } from '../components/icons.jsx'
 import { fmtMoney } from '../lib/domain.js'
 
 function ClaimCard({ cl, cert }) {
@@ -32,7 +34,7 @@ function Box({ label, value, accent = 'navy' }) {
   )
 }
 
-function ClaimDetail({ cl, cert, company, onClose, onStage }) {
+function ClaimDetail({ cl, cert, company, onClose, onStage, onGenerate }) {
   const franchise = cert ? Math.round((cert.sumInsured * cl.franchisePct) / 100) : 0
   const belowFranchise = cl.claimAmount < franchise
   return (
@@ -48,7 +50,8 @@ function ClaimDetail({ cl, cert, company, onClose, onStage }) {
       stage={cl.stage}
       onStage={onStage}
       footer={
-        <div className="mx-auto flex max-w-[820px] flex-wrap justify-end gap-2">
+        <div className="mx-auto flex max-w-[820px] flex-wrap items-center justify-end gap-2">
+          <button onClick={() => onGenerate(cl)} className="btn-ghost mr-auto ring-1 ring-ink-900/10"><IconDoc width={16} height={16} /> Сформировать документ</button>
           {belowFranchise && cl.stage !== 'Отказ' && (
             <button onClick={() => onStage('Отказ')} className="btn-ghost ring-1 ring-rose-200 text-rose-600">Закрыть отказом</button>
           )}
@@ -87,12 +90,14 @@ function ClaimDetail({ cl, cert, company, onClose, onStage }) {
 export default function Claims() {
   const { db, certById, companyById, moveStage } = useStore()
   const [selId, setSelId] = useState(null)
+  const [genId, setGenId] = useState(null)
 
   const openSum = db.claims.filter((c) => !['Возмещён', 'Отказ'].includes(c.stage)).reduce((s, c) => s + c.claimAmount, 0)
 
   const sel = db.claims.find((c) => c.id === selId)
   const cert = sel ? certById[sel.certificateId] : null
   const company = cert ? companyById[cert.companyId] : null
+  const genRecord = db.claims.find((c) => c.id === genId)
 
   return (
     <BoardPage
@@ -121,8 +126,10 @@ export default function Claims() {
           company={company}
           onClose={() => setSelId(null)}
           onStage={(s) => moveStage('claims', sel.id, s)}
+          onGenerate={(c) => { setSelId(null); setGenId(c.id) }}
         />
       )}
+      <GenerateDialog open={!!genRecord} entity="claim" record={genRecord} onClose={() => setGenId(null)} />
     </BoardPage>
   )
 }

@@ -5,13 +5,18 @@ const KEY = 'transocean-crm:v1'
 const StoreCtx = createContext(null)
 
 function load() {
+  const seed = buildSeed()
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const saved = JSON.parse(raw)
+      // backfill any collection added after this browser last saved
+      return { ...seed, ...saved, templates: saved.templates?.length ? saved.templates : seed.templates }
+    }
   } catch {
     /* ignore */
   }
-  return buildSeed()
+  return seed
 }
 
 export function StoreProvider({ children }) {
