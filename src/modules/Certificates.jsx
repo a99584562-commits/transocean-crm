@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, StageBadge, Tag, IdChip, Modal, Field } from '../components/ui.jsx'
+import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage } from '../components/ui.jsx'
 import CertificateDoc from '../components/CertificateDoc.jsx'
 import { IconPlus, IconDoc, IconCheck, IconRoute } from '../components/icons.jsx'
 import { fmtMoney, calcPremium, computeWording, uid, SEAS } from '../lib/domain.js'
@@ -32,9 +32,17 @@ function CertCard({ cert, company, vessel }) {
   )
 }
 
-function CertModal({ cert, onClose, onOpenDoc }) {
+function Info({ label, value }) {
+  return (
+    <div>
+      <p className="label mb-1">{label}</p>
+      <p className="text-[13.5px] font-semibold text-ink-900">{value || '—'}</p>
+    </div>
+  )
+}
+
+function CertDetail({ cert, onClose, onOpenDoc }) {
   const { companyById, vesselById, policyById, update } = useStore()
-  if (!cert) return null
   const company = companyById[cert.companyId]
   const vessel = vesselById[cert.vesselId]
   const policy = policyById[cert.policyId]
@@ -43,26 +51,42 @@ function CertModal({ cert, onClose, onOpenDoc }) {
   const counted = premiumCounted(cert)
 
   return (
-    <Modal open={!!cert} onClose={onClose} title={cert.number} subtitle={`${company?.name} · ${cert.cargo}`} wide>
-      <div className="space-y-5">
+    <DetailModal
+      open
+      onClose={onClose}
+      idLabel={cert.number}
+      eyebrow={cert.cargo}
+      title={company?.name}
+      metric={fmtMoney(premium)}
+      metricSub="премия"
+      pipeline="certificates"
+      stage={cert.stage}
+      onStage={(s) => update('certificates', cert.id, { stage: s })}
+      footer={
+        <div className="mx-auto flex max-w-[820px] justify-end">
+          <button onClick={() => onOpenDoc(cert)} className="btn-primary">
+            <IconDoc width={17} height={17} /> Сформировать сертификат
+          </button>
+        </div>
+      }
+    >
+      <div className="mx-auto max-w-[820px] space-y-5">
         <div className="flex flex-wrap items-center gap-2">
-          <StageBadge pipeline="certificates" stage={cert.stage} />
           {cert.seas.map((s) => <Tag key={s} color="cyan">{s}</Tag>)}
           <Tag color={cert.warCover === 'full' ? 'rose' : cert.warCover === 'partial' ? 'amber' : 'slate'}>
             {cert.warCover === 'full' ? 'страхуем войну' : cert.warCover === 'partial' ? 'война частично' : 'без войны'}
           </Tag>
         </div>
 
-        {/* Autofill source */}
-        <div className="rounded-2xl bg-navy-50/70 p-4 ring-1 ring-navy-900/[0.05]">
-          <p className="label mb-2">Автозаполнение из источника</p>
-          <p className="text-[13px] leading-relaxed text-ink-soft">
+        <div className="card p-4">
+          <p className="label mb-1.5">Автозаполнение из источника</p>
+          <p className="text-[13px] leading-relaxed text-ink-700">
             Создан из полиса <b>{policy?.number}</b>. Подтянуто: компания, страховщик, условия, даты. Из компании —
             индивидуальная ставка <b>{cert.ratePct}%</b>.
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="card grid gap-3 p-5 sm:grid-cols-2">
           <Info label="Судно" value={vessel ? `${vessel.name} (${vessel.yearBuilt})` : '—'} />
           <Info label="Вес груза" value={`${cert.weight.toLocaleString('ru-RU')} MT`} />
           <Info label="Отправление" value={cert.placeOfShipment} />
@@ -71,54 +95,45 @@ function CertModal({ cert, onClose, onOpenDoc }) {
           <Info label="Ставка" value={`${cert.ratePct}%`} />
         </div>
 
-        {/* Premium block */}
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-glow">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-100">Премия</p>
             <p className="nums text-[26px] font-extrabold tracking-tight">{fmtMoney(premium)}</p>
             <p className="text-[12px] font-medium text-brand-100">
-              {fmtMoney(cert.sumInsured)} × {cert.ratePct}% ·{' '}
-              {counted ? 'учтена' : 'не учтена — нужен скан с печатью'}
+              {fmtMoney(cert.sumInsured)} × {cert.ratePct}% · {counted ? 'учтена' : 'не учтена — нужен скан с печатью'}
             </p>
           </div>
           <button
             onClick={() => update('certificates', cert.id, { scanAttached: !cert.scanAttached })}
-            className={`btn ${cert.scanAttached ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-teal-500 text-white hover:bg-teal-600'}`}
+            className={`btn ${cert.scanAttached ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-white text-brand-700 hover:bg-brand-50'}`}
           >
-            {cert.scanAttached ? <><IconCheck width={16} height={16} /> Скан прикреплён</> : 'Прикрепить скан сертификата'}
+            {cert.scanAttached ? <><IconCheck width={16} height={16} /> Скан прикреплён</> : 'Прикрепить скан'}
           </button>
         </div>
 
-        {/* Wording */}
-        <div className="rounded-2xl p-4 ring-1 ring-navy-900/[0.06]">
+        <div className="card p-4">
           <div className="mb-1 flex items-center gap-2">
-            <IconRoute width={16} height={16} className="text-teal-600" />
+            <IconRoute width={16} height={16} className="text-brand-600" />
             <p className="label">Рекомендуемый вординг</p>
           </div>
-          <p className="text-sm font-semibold text-ink">{wording.title}</p>
+          <p className="text-[14px] font-bold text-ink-900">{wording.title}</p>
           {wording.clauses.map((c, i) => (
-            <p key={i} className="text-[12px] text-ink-soft">• {c}</p>
+            <p key={i} className="text-[12.5px] font-medium text-ink-500">• {c}</p>
           ))}
           {wording.notes.map((n, i) => (
-            <p key={i} className="mt-1 text-[12px] text-amber-600">⚠ {n}</p>
+            <p key={i} className="mt-1 text-[12.5px] font-semibold text-amber-600">⚠ {n}</p>
           ))}
         </div>
-
-        <div className="flex flex-wrap justify-end gap-2">
-          <button onClick={() => onOpenDoc(cert)} className="btn-primary">
-            <IconDoc width={17} height={17} /> Сформировать сертификат
-          </button>
-        </div>
       </div>
-    </Modal>
+    </DetailModal>
   )
 }
 
-function Info({ label, value }) {
+function Auto({ label, value }) {
   return (
     <div>
-      <p className="label mb-1">{label}</p>
-      <p className="text-sm text-ink">{value || '—'}</p>
+      <p className="label mb-0.5">{label}</p>
+      <p className="text-[13px] font-bold text-ink-900">{value || '—'}</p>
     </div>
   )
 }
@@ -188,8 +203,7 @@ function NewCertModal({ open, onClose }) {
           </Field>
         </div>
 
-        {/* autofilled, read-only context */}
-        <div className="grid grid-cols-2 gap-3 rounded-2xl bg-navy-50/70 p-3 text-[12px] ring-1 ring-navy-900/[0.05] sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 rounded-2xl bg-canvas p-3 text-[12px] ring-1 ring-ink-900/[0.05] sm:grid-cols-3">
           <Auto label="Компания" value={company?.name} />
           <Auto label="Страховщик" value={policy?.insurer} />
           <Auto label="Ставка (инд.)" value={`${ratePct}%`} />
@@ -225,7 +239,6 @@ function NewCertModal({ open, onClose }) {
           </Field>
         </div>
 
-        {/* live calc preview */}
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-glow">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-100">Расчётная премия</p>
@@ -246,38 +259,33 @@ function NewCertModal({ open, onClose }) {
   )
 }
 
-function Auto({ label, value }) {
-  return (
-    <div>
-      <p className="label mb-0.5">{label}</p>
-      <p className="font-medium text-ink">{value || '—'}</p>
-    </div>
-  )
-}
-
 export default function Certificates() {
   const { db, companyById, vesselById, policyById, moveStage } = useStore()
-  const [selected, setSelected] = useState(null)
+  const [selId, setSelId] = useState(null)
   const [creating, setCreating] = useState(false)
   const [doc, setDoc] = useState(null)
+  const selected = db.certificates.find((c) => c.id === selId)
 
   return (
-    <div className="space-y-6">
-      <PageHeader eyebrow="Операции" title="Сертификаты">
-        <button onClick={() => setCreating(true)} className="btn-primary">
-          <IconPlus width={17} height={17} /> Новый сертификат
-        </button>
-      </PageHeader>
-
+    <BoardPage
+      header={
+        <PageHeader eyebrow="Операции" title="Сертификаты">
+          <button onClick={() => setCreating(true)} className="btn-primary">
+            <IconPlus width={17} height={17} /> Новый сертификат
+          </button>
+        </PageHeader>
+      }
+    >
       <Kanban
         pipeline="certificates"
         items={db.certificates}
         onMove={(id, stage) => moveStage('certificates', id, stage)}
-        onCardClick={setSelected}
+        onCardClick={(c) => setSelId(c.id)}
+        sumOf={(c) => calcPremium(c.sumInsured, c.ratePct)}
         renderCard={(c) => <CertCard cert={c} company={companyById[c.companyId]} vessel={vesselById[c.vesselId]} />}
       />
 
-      <CertModal cert={selected} onClose={() => setSelected(null)} onOpenDoc={(c) => { setSelected(null); setDoc(c) }} />
+      {selected && <CertDetail cert={selected} onClose={() => setSelId(null)} onOpenDoc={(c) => { setSelId(null); setDoc(c) }} />}
       <NewCertModal open={creating} onClose={() => setCreating(false)} />
 
       <Modal open={!!doc} onClose={() => setDoc(null)} title="Сертификат страхования" subtitle="Шаблон Ингосстраха с подстановкой данных (маски)" wide>
@@ -290,6 +298,6 @@ export default function Certificates() {
           />
         )}
       </Modal>
-    </div>
+    </BoardPage>
   )
 }

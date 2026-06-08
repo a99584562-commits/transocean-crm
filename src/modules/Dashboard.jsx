@@ -1,5 +1,5 @@
 import { useStore } from '../lib/store.jsx'
-import { PageHeader, Stat } from '../components/ui.jsx'
+import { PageHeader, Stat, Page } from '../components/ui.jsx'
 import { fmtMoney, fmtDate, daysUntil, PIPELINES, STAGE_COLORS, ACCENTS } from '../lib/domain.js'
 import {
   IconArrowRight, IconCalendar, IconPremium, IconCertificate, IconPolicy, IconClaim,
@@ -77,7 +77,8 @@ export default function Dashboard({ setView }) {
   const certTotal = db.certificates.length || 1
 
   return (
-    <div className="space-y-6">
+    <Page>
+      <div className="space-y-6">
       <PageHeader eyebrow="Обзор · 8 июня 2026" title="Сводка по портфелю" />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -131,7 +132,8 @@ export default function Dashboard({ setView }) {
         <QuickLink icon={IconPremium} title="Премии к оплате" meta={`${db.premiums.filter((p) => p.stage !== 'Счёт оплачен').length} счёта в ожидании`} onClick={() => setView('premiums')} />
         <QuickLink icon={IconCalendar} title="Подбор вординга" meta="Формулировка по маршруту" onClick={() => setView('wording')} />
       </div>
-    </div>
+      </div>
+    </Page>
   )
 }
 

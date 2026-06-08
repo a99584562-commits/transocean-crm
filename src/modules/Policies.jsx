@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, StageBadge, Tag, IdChip, Modal, Field } from '../components/ui.jsx'
+import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage } from '../components/ui.jsx'
 import { IconPlus, IconCalendar } from '../components/icons.jsx'
 import { fmtDate, daysUntil, suggestPolicyStage, uid, INSURERS } from '../lib/domain.js'
 
@@ -31,22 +31,35 @@ function PolicyCard({ p, company }) {
   )
 }
 
-function PolicyModal({ p, onClose }) {
+function Info({ label, value, full }) {
+  return (
+    <div className={full ? 'sm:col-span-2' : ''}>
+      <p className="label mb-1">{label}</p>
+      <p className="text-[13.5px] font-semibold text-ink-900">{value || '—'}</p>
+    </div>
+  )
+}
+
+function PolicyDetail({ p, onClose }) {
   const { companyById, update } = useStore()
-  if (!p) return null
   const company = companyById[p.companyId]
   const d = daysUntil(p.endDate)
   const suggested = suggestPolicyStage(p)
   return (
-    <Modal open={!!p} onClose={onClose} title={p.number} subtitle={company?.name} wide>
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <StageBadge pipeline="policies" stage={p.stage} />
-          <Tag color="navy">{p.insurer}</Tag>
-          {p.autoRenew && <Tag color="emerald">автопродление</Tag>}
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
+    <DetailModal
+      open
+      onClose={onClose}
+      idLabel={p.number}
+      eyebrow={p.insurer}
+      title={company?.name}
+      metric={`${p.baseRate}%`}
+      metricSub="базовая ставка"
+      pipeline="policies"
+      stage={p.stage}
+      onStage={(s) => update('policies', p.id, { stage: s })}
+    >
+      <div className="mx-auto max-w-[760px] space-y-5">
+        <div className="card grid gap-3 p-5 sm:grid-cols-2">
           <Info label="Груз" value={p.cargo} />
           <Info label="Базовая ставка" value={`${p.baseRate}%`} />
           <Info label="Начало действия" value={fmtDate(p.startDate)} />
@@ -54,10 +67,9 @@ function PolicyModal({ p, onClose }) {
           <Info label="Условия страхования" value={p.conditions} full />
         </div>
 
-        {/* Auto-renew rule card */}
-        <div className="rounded-2xl bg-navy-50/70 p-4 ring-1 ring-navy-900/[0.05]">
+        <div className="card p-5">
           <p className="label mb-2">Правило стадии (как на схеме)</p>
-          <p className="text-[13px] leading-relaxed text-ink-soft">
+          <p className="text-[13.5px] leading-relaxed text-ink-700">
             {p.autoRenew ? (
               <>Поле <b>«автопродление»</b> включено — полис остаётся на стадии <b>«Полис оформлен»</b> до закрытия.</>
             ) : (
@@ -65,10 +77,7 @@ function PolicyModal({ p, onClose }) {
             )}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => update('policies', p.id, { autoRenew: !p.autoRenew })}
-              className="btn-ghost ring-1 ring-navy-900/10"
-            >
+            <button onClick={() => update('policies', p.id, { autoRenew: !p.autoRenew })} className="btn-ghost ring-1 ring-ink-900/10">
               {p.autoRenew ? 'Выключить автопродление' : 'Включить автопродление'}
             </button>
             {!p.autoRenew && suggested !== p.stage && (
@@ -79,16 +88,7 @@ function PolicyModal({ p, onClose }) {
           </div>
         </div>
       </div>
-    </Modal>
-  )
-}
-
-function Info({ label, value, full }) {
-  return (
-    <div className={full ? 'sm:col-span-2' : ''}>
-      <p className="label mb-1">{label}</p>
-      <p className="text-sm text-ink">{value || '—'}</p>
-    </div>
+    </DetailModal>
   )
 }
 
@@ -142,9 +142,9 @@ function NewPolicyModal({ open, onClose }) {
         <Field label="Груз">
           <input className="field" value={form.cargo} onChange={set('cargo')} />
         </Field>
-        <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-navy-50/60 px-3.5 py-3 ring-1 ring-navy-900/[0.05]">
-          <input type="checkbox" checked={form.autoRenew} onChange={(e) => setForm((f) => ({ ...f, autoRenew: e.target.checked }))} className="h-4 w-4 accent-teal-500" />
-          <span className="text-sm text-ink-soft">Автопродление</span>
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-canvas px-3.5 py-3 ring-1 ring-ink-900/[0.05]">
+          <input type="checkbox" checked={form.autoRenew} onChange={(e) => setForm((f) => ({ ...f, autoRenew: e.target.checked }))} className="h-4 w-4 accent-brand-600" />
+          <span className="text-[13px] font-semibold text-ink-700">Автопродление</span>
         </label>
         <div className="flex justify-end gap-2 pt-1">
           <button onClick={onClose} className="btn-ghost">Отмена</button>
@@ -157,27 +157,30 @@ function NewPolicyModal({ open, onClose }) {
 
 export default function Policies() {
   const { db, companyById, moveStage } = useStore()
-  const [selected, setSelected] = useState(null)
+  const [selId, setSelId] = useState(null)
   const [creating, setCreating] = useState(false)
+  const selected = db.policies.find((p) => p.id === selId)
 
   return (
-    <div className="space-y-6">
-      <PageHeader eyebrow="Операции" title="Генеральные полисы">
-        <button onClick={() => setCreating(true)} className="btn-primary">
-          <IconPlus width={17} height={17} /> Новый полис
-        </button>
-      </PageHeader>
-
+    <BoardPage
+      header={
+        <PageHeader eyebrow="Операции" title="Генеральные полисы">
+          <button onClick={() => setCreating(true)} className="btn-primary">
+            <IconPlus width={17} height={17} /> Новый полис
+          </button>
+        </PageHeader>
+      }
+    >
       <Kanban
         pipeline="policies"
         items={db.policies}
         onMove={(id, stage) => moveStage('policies', id, stage)}
-        onCardClick={setSelected}
+        onCardClick={(p) => setSelId(p.id)}
         renderCard={(p) => <PolicyCard p={p} company={companyById[p.companyId]} />}
       />
 
-      <PolicyModal p={selected} onClose={() => setSelected(null)} />
+      {selected && <PolicyDetail p={selected} onClose={() => setSelId(null)} />}
       <NewPolicyModal open={creating} onClose={() => setCreating(false)} />
-    </div>
+    </BoardPage>
   )
 }

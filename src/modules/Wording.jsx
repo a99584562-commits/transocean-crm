@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PageHeader } from '../components/ui.jsx'
+import { PageHeader, Page } from '../components/ui.jsx'
 import { computeWording, SEAS } from '../lib/domain.js'
 import { IconRoute, IconCheck } from '../components/icons.jsx'
 
@@ -60,7 +60,8 @@ export default function Wording() {
   const showCovered = warCover === 'partial'
 
   return (
-    <div className="space-y-6">
+    <Page>
+      <div className="space-y-6">
       <PageHeader eyebrow="Инструменты" title="Подбор вординга">
         <span className="hidden text-[12px] text-ink-muted sm:inline">по дереву решений из методологии Трансоушен</span>
       </PageHeader>
@@ -164,10 +165,11 @@ export default function Wording() {
         </div>
       </div>
 
-      <p className="px-1 text-[12px] text-ink-muted">
+      <p className="px-1 text-[12px] font-medium text-ink-400">
         Логика построена по схеме «Сертификат → страхует/не страхует/частично войну → моря → военные зоны». Открытый
         вопрос со схемы (объём ≤ 2,5) подсвечивается как требующий решения андеррайтера.
       </p>
-    </div>
+      </div>
+    </Page>
   )
 }

@@ -161,14 +161,12 @@ function Shell() {
   const [view, setView] = useState('dashboard')
   const View = VIEWS[view]
   return (
-    <div className="flex min-h-[100dvh] bg-canvas">
+    <div className="flex h-[100dvh] overflow-hidden bg-canvas">
       <Sidebar view={view} setView={setView} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar />
-        <main className="scroll-thin flex-1 px-5 py-6 sm:px-8 sm:py-8">
-          <div className="mx-auto max-w-[1200px] animate-fade-up" key={view}>
-            <View setView={setView} />
-          </div>
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <View key={view} setView={setView} />
         </main>
         <MobileNav view={view} setView={setView} />
       </div>

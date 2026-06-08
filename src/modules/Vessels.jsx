@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { PageHeader, Tag, Modal, Field } from '../components/ui.jsx'
+import { PageHeader, Tag, Modal, Field, Page } from '../components/ui.jsx'
 import { IconPlus, IconVessel } from '../components/icons.jsx'
 import { vesselAge, uid } from '../lib/domain.js'
 
@@ -58,7 +58,8 @@ export default function Vessels() {
   const certCount = (vId) => db.certificates.filter((c) => c.vesselId === vId).length
 
   return (
-    <div className="space-y-6">
+    <Page>
+      <div className="space-y-6">
       <PageHeader eyebrow="Операции" title="Реестр судов">
         <button onClick={() => setCreating(true)} className="btn-primary">
           <IconPlus width={17} height={17} /> Новое судно
@@ -105,6 +106,7 @@ export default function Vessels() {
       </p>
 
       <NewVesselModal open={creating} onClose={() => setCreating(false)} />
-    </div>
+      </div>
+    </Page>
   )
 }
