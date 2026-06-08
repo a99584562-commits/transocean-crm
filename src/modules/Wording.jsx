@@ -10,8 +10,8 @@ function Segmented({ value, onChange, options }) {
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-full px-3 py-2 text-[13px] font-semibold transition-all duration-300 ease-spring
-            ${value === o.value ? 'bg-surface text-navy-900 shadow-soft' : 'text-ink-muted hover:text-ink-soft'}`}
+          className={`flex-1 rounded-full px-3 py-2 text-[13px] font-bold tracking-tight transition-all duration-300 ease-spring
+            ${value === o.value ? 'bg-white text-ink-900 shadow-soft' : 'text-ink-400 hover:text-ink-700'}`}
         >
           {o.label}
         </button>
@@ -28,10 +28,10 @@ function SeaToggle({ active, seas, onToggle }) {
           key={s.id}
           onClick={() => onToggle(s.id)}
           className={`flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-3 text-center transition-all duration-300 ease-spring
-            ${active.includes(s.id) ? 'bg-teal-500 text-white shadow-soft' : 'bg-navy-50 text-ink-soft hover:bg-navy-100'}`}
+            ${active.includes(s.id) ? 'bg-brand-600 text-white shadow-soft' : 'bg-canvas text-ink-500 ring-1 ring-ink-900/[0.05] hover:bg-ink-900/[0.04]'}`}
         >
-          <span className="font-display text-lg font-bold">{s.id}</span>
-          <span className="text-[10px] opacity-80">{s.name}</span>
+          <span className="text-[17px] font-extrabold tracking-tight">{s.id}</span>
+          <span className="text-[10px] font-semibold opacity-80">{s.name}</span>
         </button>
       ))}
     </div>
@@ -129,12 +129,12 @@ export default function Wording() {
               <span className={`text-[11px] font-bold uppercase tracking-[0.16em] ${statusMeta.text}`}>{statusMeta.label}</span>
             </div>
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/70 text-teal-600 shadow-soft">
+              <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/70 text-brand-600 shadow-soft">
                 <IconRoute width={22} height={22} />
               </span>
               <div>
                 <p className="label mb-0.5">Рекомендуемый вординг</p>
-                <p className="font-display text-xl font-bold leading-tight text-ink">{result.title}</p>
+                <p className="text-[20px] font-extrabold leading-tight tracking-tight text-ink-900">{result.title}</p>
               </div>
             </div>
           </div>

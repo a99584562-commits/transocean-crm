@@ -1,21 +1,23 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, StageBadge, Tag, Modal } from '../components/ui.jsx'
+import { PageHeader, StageBadge, Tag, IdChip, Modal } from '../components/ui.jsx'
 import { fmtMoney, fmtDate } from '../lib/domain.js'
 
 function ClaimCard({ cl, cert }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate font-display text-sm font-semibold text-ink">{cl.number}</p>
-          <p className="truncate text-[12px] text-ink-muted">{cert?.number} · {cl.insurer}</p>
-        </div>
-        <Tag color="rose">{fmtMoney(cl.claimAmount)}</Tag>
+    <div>
+      <div className="flex items-center justify-between gap-2">
+        <IdChip>{cl.number}</IdChip>
+        <span className="nums text-[13px] font-extrabold tracking-tight text-rose-600">{fmtMoney(cl.claimAmount)}</span>
       </div>
-      <p className="truncate text-[12px] text-ink-soft">{cl.type}</p>
-      {!cl.docsComplete && <Tag color="amber">нет документов</Tag>}
+      <h4 className="mt-2 truncate text-[14px] font-bold tracking-tight text-ink-900">{cl.type}</h4>
+      <p className="mt-0.5 truncate text-[12px] font-medium text-ink-400">{cert?.number} · {cl.insurer}</p>
+      {!cl.docsComplete && (
+        <div className="mt-2.5 border-t border-ink-900/[0.05] pt-2.5">
+          <Tag color="amber" dot>нет документов</Tag>
+        </div>
+      )}
     </div>
   )
 }

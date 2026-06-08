@@ -1,33 +1,31 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, StageBadge, Tag, Modal, Field } from '../components/ui.jsx'
+import { PageHeader, StageBadge, Tag, IdChip, Modal, Field } from '../components/ui.jsx'
 import { IconPlus, IconCalendar } from '../components/icons.jsx'
 import { fmtDate, daysUntil, suggestPolicyStage, uid, INSURERS } from '../lib/domain.js'
 
 function PolicyCard({ p, company }) {
   const d = daysUntil(p.endDate)
   return (
-    <div className="space-y-2">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate font-display text-sm font-semibold text-ink">{p.number}</p>
-          <p className="truncate text-[12px] text-ink-muted">{company?.name}</p>
-        </div>
+    <div>
+      <div className="flex items-center justify-between gap-2">
+        <IdChip>{p.number}</IdChip>
         {p.autoRenew ? (
-          <Tag color="emerald">авто</Tag>
+          <Tag color="emerald" dot>авто</Tag>
         ) : (
           <Tag color={d != null && d <= 30 ? 'rose' : d != null && d <= 60 ? 'amber' : 'slate'}>
             {d != null ? `${d} дн.` : 'ручное'}
           </Tag>
         )}
       </div>
-      <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+      <h4 className="mt-2 truncate text-[14px] font-bold tracking-tight text-ink-900">{company?.name}</h4>
+      <div className="mt-1 flex items-center gap-1.5 text-[12px] font-medium text-ink-400">
         <IconCalendar width={13} height={13} />
         до {fmtDate(p.endDate)}
       </div>
-      <div className="flex items-center gap-1">
-        <Tag color="navy">{p.insurer}</Tag>
+      <div className="mt-2.5 flex items-center gap-1.5 border-t border-ink-900/[0.05] pt-2.5">
+        <Tag color="brand">{p.insurer}</Tag>
       </div>
     </div>
   )

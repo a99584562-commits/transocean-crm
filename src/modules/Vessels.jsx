@@ -83,18 +83,18 @@ export default function Vessels() {
               style={{ borderTop: i === 0 ? 'none' : '1px solid rgba(10,31,51,0.05)' }}
             >
               <div className="col-span-2 flex items-center gap-3 sm:col-span-1">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-navy-50 text-navy-600">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
                   <IconVessel width={20} height={20} />
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate font-display text-sm font-semibold text-ink">{v.name}</p>
-                  <p className="truncate text-[12px] text-ink-muted">{v.type}</p>
+                  <p className="truncate text-[14px] font-bold tracking-tight text-ink-900">{v.name}</p>
+                  <p className="truncate text-[12px] font-medium text-ink-400">{v.type}</p>
                 </div>
               </div>
-              <p className="nums text-sm text-ink-soft"><span className="label mr-2 sm:hidden">IMO</span>{v.imo}</p>
-              <div><Tag color={ageTone(age)}>{age} лет · {v.yearBuilt}</Tag></div>
-              <p className="text-sm text-ink-soft">{v.flag}</p>
-              <p className="nums text-sm text-ink sm:text-right">{certCount(v.id)}</p>
+              <p className="nums font-mono text-[13px] font-medium text-ink-500"><span className="label mr-2 sm:hidden">IMO</span>{v.imo}</p>
+              <div><Tag color={ageTone(age)} dot>{age} лет · {v.yearBuilt}</Tag></div>
+              <p className="text-[13px] font-semibold text-ink-700">{v.flag}</p>
+              <p className="nums text-[14px] font-extrabold text-ink-900 sm:text-right">{certCount(v.id)}</p>
             </div>
           )
         })}

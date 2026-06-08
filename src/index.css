@@ -3,14 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
   html {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-canvas text-ink font-sans antialiased;
+    @apply bg-canvas font-sans text-ink-900 antialiased;
   }
-  /* Tabular figures everywhere numbers matter */
   .nums {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
@@ -19,47 +21,77 @@
 
 @layer components {
   .card {
-    @apply bg-surface rounded-2xl shadow-soft ring-1 ring-navy-900/[0.06];
+    @apply bg-surface rounded-2xl shadow-soft ring-1 ring-ink-900/[0.05];
   }
+  /* tinted pill — colour supplied inline via style */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold leading-none;
   }
+  /* compact bold label, not sparse uppercase */
   .label {
-    @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-muted;
+    @apply text-[11px] font-bold tracking-tight text-ink-400;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold
-           transition-all duration-300 ease-spring active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-bold tracking-tight
+           transition-all duration-300 ease-spring active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none;
   }
   .btn-primary {
-    @apply btn bg-navy-900 text-white hover:bg-navy-800 shadow-soft;
+    @apply btn bg-brand-600 text-white shadow-soft hover:bg-brand-700;
+  }
+  .btn-soft {
+    @apply btn bg-brand-50 text-brand-700 hover:bg-brand-100;
   }
   .btn-teal {
-    @apply btn bg-teal-500 text-white hover:bg-teal-600 shadow-soft;
+    @apply btn bg-teal-500 text-white shadow-soft hover:bg-teal-600;
   }
   .btn-ghost {
-    @apply btn text-ink-soft hover:bg-navy-50;
+    @apply btn text-ink-500 hover:bg-ink-900/[0.04];
   }
   .field {
-    @apply w-full rounded-xl bg-navy-50/60 ring-1 ring-navy-900/[0.06] px-3.5 py-2.5 text-sm text-ink
-           placeholder:text-ink-muted/70 outline-none transition-all duration-300 ease-spring
-           focus:ring-2 focus:ring-teal-400 focus:bg-white;
+    @apply w-full rounded-xl bg-canvas px-3.5 py-2.5 text-[13px] font-medium text-ink-900 ring-1 ring-ink-900/[0.06]
+           outline-none transition-all duration-300 ease-spring placeholder:text-ink-300
+           focus:bg-white focus:ring-2 focus:ring-brand-500;
   }
 }
 
-/* Custom thin scrollbars for the marine, machined feel */
+/* thin, unobtrusive scrollbars */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(131, 140, 160, 0.35) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(131, 140, 160, 0.3);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(131, 140, 160, 0.5);
+  background-clip: content-box;
+}
+
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(10, 31, 51, 0.18) transparent;
+  scrollbar-color: rgba(131, 140, 160, 0.3) transparent;
 }
 *::-webkit-scrollbar {
   height: 8px;
   width: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(10, 31, 51, 0.16);
+  background: rgba(131, 140, 160, 0.28);
   border-radius: 999px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(10, 31, 51, 0.28);
+  background: rgba(131, 140, 160, 0.45);
+}
+
+/* card being dragged */
+.dragging {
+  opacity: 0.45;
+  transform: rotate(1.5deg) scale(0.98);
 }

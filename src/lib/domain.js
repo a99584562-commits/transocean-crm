@@ -4,20 +4,23 @@
 
 export const TODAY = new Date('2026-06-08')
 
-// ── Stage colour tokens ──────────────────────────────────────────────────────
-// soft chip styles keyed by name; avoids harsh borders, keeps the marine palette.
-export const STAGE_COLORS = {
-  slate: { bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' },
-  navy: { bg: 'bg-navy-100', text: 'text-navy-700', dot: 'bg-navy-500' },
-  sky: { bg: 'bg-sky-100', text: 'text-sky-700', dot: 'bg-sky-500' },
-  teal: { bg: 'bg-teal-100', text: 'text-teal-700', dot: 'bg-teal-500' },
-  amber: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
-  violet: { bg: 'bg-violet-100', text: 'text-violet-700', dot: 'bg-violet-500' },
-  emerald: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  rose: { bg: 'bg-rose-100', text: 'text-rose-700', dot: 'bg-rose-500' },
-  lime: { bg: 'bg-lime-100', text: 'text-lime-700', dot: 'bg-lime-500' },
-  cyan: { bg: 'bg-cyan-100', text: 'text-cyan-700', dot: 'bg-cyan-500' },
+// ── Stage / accent colour tokens (hex) ───────────────────────────────────────
+// Tinted-chip approach (RCTO style): text uses the hex, background uses hex+alpha.
+export const ACCENTS = {
+  slate: '#64748b',
+  brand: '#0b60d8',
+  navy: '#1e3a5f',
+  sky: '#0284c7',
+  teal: '#0d9488',
+  amber: '#d97706',
+  violet: '#7c5cfc',
+  emerald: '#0f9d6e',
+  rose: '#e1456b',
+  cyan: '#0891b2',
+  lime: '#65a30d',
 }
+// back-compat alias: name → hex
+export const STAGE_COLORS = ACCENTS
 
 // ── Pipelines (воронки) ──────────────────────────────────────────────────────
 export const PIPELINES = {
@@ -70,7 +73,8 @@ export const PIPELINES = {
 export function stageMeta(pipelineKey, stageId) {
   const p = PIPELINES[pipelineKey]
   const s = p?.stages.find((x) => x.id === stageId)
-  return { color: s?.color || 'slate', ...(STAGE_COLORS[s?.color || 'slate']) }
+  const color = s?.color || 'slate'
+  return { color, accent: ACCENTS[color] || ACCENTS.slate }
 }
 
 // ── Insurers & seas ──────────────────────────────────────────────────────────

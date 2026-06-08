@@ -1,23 +1,24 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, StageBadge, Tag, Modal } from '../components/ui.jsx'
+import { PageHeader, StageBadge, Tag, IdChip, Modal } from '../components/ui.jsx'
 import { fmtMoney, fmtDate, daysUntil } from '../lib/domain.js'
 
 function PremiumCard({ pr, cert, company }) {
   const d = daysUntil(pr.dueDate)
   const overdue = pr.stage !== 'Счёт оплачен' && d != null && d < 0
   return (
-    <div className="space-y-2">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate font-display text-sm font-semibold text-ink">{pr.number}</p>
-          <p className="truncate text-[12px] text-ink-muted">{cert?.number} · {company?.name}</p>
-        </div>
-        <Tag color={pr.stage === 'Счёт оплачен' ? 'emerald' : 'violet'}>{fmtMoney(pr.amount)}</Tag>
+    <div>
+      <div className="flex items-center justify-between gap-2">
+        <IdChip>{pr.number}</IdChip>
+        <span className={`nums text-[13px] font-extrabold tracking-tight ${pr.stage === 'Счёт оплачен' ? 'text-emerald-600' : 'text-ink-900'}`}>
+          {fmtMoney(pr.amount)}
+        </span>
       </div>
+      <h4 className="mt-2 truncate text-[14px] font-bold tracking-tight text-ink-900">{cert?.number}</h4>
+      <p className="mt-0.5 truncate text-[12px] font-medium text-ink-400">{company?.name}</p>
       {pr.stage !== 'Счёт оплачен' && (
-        <p className={`text-[11px] ${overdue ? 'text-rose-600' : 'text-ink-muted'}`}>
+        <p className={`mt-2.5 border-t border-ink-900/[0.05] pt-2.5 text-[11px] font-semibold ${overdue ? 'text-rose-600' : 'text-ink-400'}`}>
           срок оплаты {fmtDate(pr.dueDate)}{overdue ? ' · просрочено' : ''}
         </p>
       )}
@@ -59,12 +60,12 @@ export default function Premiums() {
             <div className="flex items-center gap-2">
               <StageBadge pipeline="premiums" stage={sel.stage} />
             </div>
-            <div className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 p-4 text-white">
+            <div className="flex items-center justify-between rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-glow">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-teal-300">Сумма премии</p>
-                <p className="nums font-display text-2xl font-bold">{fmtMoney(sel.amount)}</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-100">Сумма премии</p>
+                <p className="nums text-[26px] font-extrabold tracking-tight">{fmtMoney(sel.amount)}</p>
               </div>
-              <p className="text-[12px] text-navy-100">срок {fmtDate(sel.dueDate)}</p>
+              <p className="text-[12px] font-medium text-brand-100">срок {fmtDate(sel.dueDate)}</p>
             </div>
             <div className="flex flex-wrap justify-end gap-2">
               {sel.stage === 'Новая премия' && (

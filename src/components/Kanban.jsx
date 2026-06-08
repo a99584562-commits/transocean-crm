@@ -1,13 +1,8 @@
 import { useState } from 'react'
 import { PIPELINES, STAGE_COLORS } from '../lib/domain.js'
 
-// Reusable kanban board with native HTML5 drag-and-drop between stages.
-// props:
-//   pipeline  – key in PIPELINES
-//   items     – array with a `stage` field
-//   onMove(id, stage)
-//   renderCard(item) → JSX
-//   onCardClick(item)
+// Reusable kanban board with native HTML5 drag-and-drop between stages — styled
+// after the РЦТО board (header above a soft drop zone, tinted accents).
 export default function Kanban({ pipeline, items, onMove, renderCard, onCardClick }) {
   const stages = PIPELINES[pipeline].stages
   const [dragId, setDragId] = useState(null)
@@ -20,36 +15,42 @@ export default function Kanban({ pipeline, items, onMove, renderCard, onCardClic
   }
 
   return (
-    <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-3">
+    <div className="scroll-thin -mx-1 flex gap-3 overflow-x-auto px-1 pb-3">
       {stages.map((stage) => {
         const cards = items.filter((it) => it.stage === stage.id)
-        const c = STAGE_COLORS[stage.color]
+        const accent = STAGE_COLORS[stage.color]
         const isOver = overStage === stage.id
         return (
-          <div
-            key={stage.id}
-            onDragOver={(e) => {
-              e.preventDefault()
-              setOverStage(stage.id)
-            }}
-            onDragLeave={() => setOverStage((s) => (s === stage.id ? null : s))}
-            onDrop={() => drop(stage.id)}
-            className={`flex w-[280px] shrink-0 flex-col rounded-2xl p-2 transition-colors duration-300 ease-spring
-              ${isOver ? 'bg-teal-50 ring-1 ring-teal-300' : 'bg-navy-50/50'}`}
-          >
-            <div className="flex items-center justify-between px-2 py-2">
-              <div className="flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full ${c.dot}`} />
-                <span className="text-[12px] font-semibold text-ink-soft">{stage.id}</span>
-              </div>
-              <span className="nums grid h-5 min-w-5 place-items-center rounded-full bg-white px-1.5 text-[11px] font-semibold text-ink-muted ring-1 ring-navy-900/[0.05]">
+          <section key={stage.id} className="flex w-[300px] shrink-0 flex-col">
+            {/* Stage header */}
+            <div className="mb-2.5 flex items-center gap-2 px-1">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
+              <h3 className="flex-1 truncate text-[13px] font-bold tracking-tight text-ink-900">{stage.id}</h3>
+              <span className="nums grid min-w-[22px] place-items-center rounded-full bg-ink-900/[0.05] px-1.5 text-[11px] font-bold text-ink-500">
                 {cards.length}
               </span>
             </div>
 
-            <div className="flex min-h-[60px] flex-col gap-2">
+            {/* Drop zone */}
+            <div
+              onDragOver={(e) => {
+                e.preventDefault()
+                if (!isOver) setOverStage(stage.id)
+              }}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) setOverStage((s) => (s === stage.id ? null : s))
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                drop(stage.id)
+              }}
+              className={`flex flex-1 flex-col gap-2.5 rounded-3xl p-2 transition-colors duration-300 ${
+                isOver ? 'bg-brand-500/[0.07] ring-2 ring-dashed ring-brand-500/40' : 'bg-ink-900/[0.025]'
+              }`}
+              style={{ minHeight: 120 }}
+            >
               {cards.map((it) => (
-                <div
+                <article
                   key={it.id}
                   draggable
                   onDragStart={() => setDragId(it.id)}
@@ -58,20 +59,20 @@ export default function Kanban({ pipeline, items, onMove, renderCard, onCardClic
                     setOverStage(null)
                   }}
                   onClick={() => onCardClick?.(it)}
-                  className={`cursor-pointer rounded-xl bg-surface p-3 shadow-soft ring-1 ring-navy-900/[0.05]
-                    transition-all duration-300 ease-spring hover:-translate-y-0.5 hover:shadow-soft-lg
-                    ${dragId === it.id ? 'opacity-40' : 'opacity-100'}`}
+                  className={`group cursor-pointer select-none rounded-2xl bg-white p-3.5 shadow-soft ring-1 ring-ink-900/[0.04]
+                    transition-all duration-300 ease-spring hover:-translate-y-0.5 hover:shadow-lift hover:ring-brand-500/30
+                    active:scale-[0.98] ${dragId === it.id ? 'dragging' : ''}`}
                 >
                   {renderCard(it)}
-                </div>
+                </article>
               ))}
               {cards.length === 0 && (
-                <div className="grid place-items-center rounded-xl border border-dashed border-navy-900/10 py-5 text-[11px] text-ink-muted">
-                  перетащите сюда
+                <div className="grid flex-1 place-items-center rounded-2xl border border-dashed border-ink-900/10 py-8 text-[11px] font-medium text-ink-300">
+                  Перетащите сюда
                 </div>
               )}
             </div>
-          </div>
+          </section>
         )
       })}
     </div>

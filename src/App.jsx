@@ -3,7 +3,7 @@ import { StoreProvider, useStore } from './lib/store.jsx'
 import Gate from './components/Gate.jsx'
 import {
   IconDashboard, IconPolicy, IconCertificate, IconVessel,
-  IconPremium, IconClaim, IconWording, IconSearch, IconReset, IconBell,
+  IconPremium, IconClaim, IconWording, IconSearch, IconReset,
 } from './components/icons.jsx'
 import Dashboard from './modules/Dashboard.jsx'
 import Policies from './modules/Policies.jsx'
@@ -33,35 +33,35 @@ const VIEWS = {
   wording: Wording,
 }
 
-function Brand() {
+function Logo({ size = 'md' }) {
+  const dim = size === 'sm' ? 'h-9 w-9 text-[14px]' : 'h-10 w-10 text-[15px]'
   return (
-    <div className="flex items-center gap-2.5">
-      <div className="grid h-9 w-9 place-items-center rounded-xl bg-navy-900 shadow-soft">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#27A8A3" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 3l7 2.5v5c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9v-5L12 3z" />
-          <path d="M9 11.5l2.2 2.2L15 9.8" />
-        </svg>
+    <div className="flex items-center gap-3">
+      <div className={`grid ${dim} place-items-center rounded-2xl bg-brand-600 font-extrabold tracking-tight text-white shadow-glow`}>
+        ТО
       </div>
       <div className="leading-tight">
-        <p className="font-display text-[15px] font-bold tracking-tight text-ink">ТРАНСОУШЕН</p>
-        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-muted">Marine Cargo Insurance</p>
+        <div className="text-[15px] font-extrabold tracking-tight text-ink-900">ТРАНСОУШЕН</div>
+        <div className="text-[10.5px] font-semibold text-ink-400">Marine Cargo Insurance</div>
       </div>
     </div>
   )
 }
 
 function Sidebar({ view, setView }) {
+  const { reset } = useStore()
   const groups = [...new Set(NAV.map((n) => n.group))]
   return (
-    <aside className="hidden w-[244px] shrink-0 flex-col gap-1 border-r border-navy-900/[0.06] bg-surface/70 px-4 py-6 lg:flex">
-      <div className="px-2 pb-6">
-        <Brand />
+    <aside className="hidden w-[236px] shrink-0 flex-col border-r border-ink-900/[0.06] bg-white lg:flex">
+      <div className="px-5 py-4">
+        <Logo />
       </div>
-      <nav className="flex flex-col gap-5">
+
+      <nav className="scroll-thin flex-1 space-y-4 overflow-y-auto px-3 py-2">
         {groups.map((g) => (
           <div key={g}>
-            <p className="label px-3 pb-2">{g}</p>
-            <div className="flex flex-col gap-0.5">
+            <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-300">{g}</p>
+            <div className="space-y-1">
               {NAV.filter((n) => n.group === g).map((n) => {
                 const active = view === n.id
                 const Icon = n.icon
@@ -69,15 +69,14 @@ function Sidebar({ view, setView }) {
                   <button
                     key={n.id}
                     onClick={() => setView(n.id)}
-                    className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ease-spring
-                      ${active ? 'bg-navy-900 text-white shadow-soft' : 'text-ink-soft hover:bg-navy-50'}`}
+                    className={`group flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-all duration-300 ease-spring active:scale-[0.98]
+                      ${active ? 'bg-brand-50 text-brand-700' : 'text-ink-500 hover:bg-ink-900/[0.04]'}`}
                   >
-                    <Icon
-                      width={19}
-                      height={19}
-                      className={`transition-colors ${active ? 'text-teal-300' : 'text-ink-muted group-hover:text-navy-600'}`}
-                    />
-                    {n.label}
+                    <span className={`grid h-7 w-7 place-items-center rounded-xl transition-colors
+                      ${active ? 'bg-brand-600 text-white' : 'text-ink-400 group-hover:text-ink-700'}`}>
+                      <Icon width={17} height={17} />
+                    </span>
+                    <span className="flex-1 text-[13.5px] font-bold tracking-tight">{n.label}</span>
                   </button>
                 )
               })}
@@ -85,13 +84,21 @@ function Sidebar({ view, setView }) {
           </div>
         ))}
       </nav>
-      <div className="mt-auto px-2 pt-6">
-        <div className="rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 p-4 text-white shadow-soft">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-teal-300">Демо-версия</p>
-          <p className="mt-1.5 text-[13px] leading-snug text-navy-100">
-            Прототип системы. Данные демонстрационные, изменения сохраняются локально.
+
+      <div className="border-t border-ink-900/[0.06] p-3">
+        <div className="rounded-2xl bg-canvas px-3.5 py-3 ring-1 ring-ink-900/[0.05]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-brand-600">Демо-версия</p>
+          <p className="mt-1 text-[11.5px] font-medium leading-snug text-ink-400">
+            Данные демонстрационные, правки сохраняются локально.
           </p>
         </div>
+        <button
+          onClick={() => { if (confirm('Сбросить демо-данные к исходным?')) reset() }}
+          className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-[12px] font-bold text-ink-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+        >
+          <IconReset width={15} height={15} />
+          Сбросить демо
+        </button>
       </div>
     </aside>
   )
@@ -99,7 +106,7 @@ function Sidebar({ view, setView }) {
 
 function MobileNav({ view, setView }) {
   return (
-    <div className="sticky bottom-0 z-30 flex items-center gap-1 overflow-x-auto border-t border-navy-900/[0.06] bg-surface/95 px-2 py-2 backdrop-blur lg:hidden">
+    <div className="scroll-thin sticky bottom-0 z-30 flex items-center gap-1 overflow-x-auto border-t border-ink-900/[0.06] bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
       {NAV.map((n) => {
         const active = view === n.id
         const Icon = n.icon
@@ -107,10 +114,12 @@ function MobileNav({ view, setView }) {
           <button
             key={n.id}
             onClick={() => setView(n.id)}
-            className={`flex shrink-0 flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-medium transition-colors
-              ${active ? 'text-navy-900' : 'text-ink-muted'}`}
+            className={`flex shrink-0 flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-bold transition-colors
+              ${active ? 'text-brand-700' : 'text-ink-400'}`}
           >
-            <Icon width={20} height={20} className={active ? 'text-teal-500' : ''} />
+            <span className={`grid h-7 w-7 place-items-center rounded-lg ${active ? 'bg-brand-600 text-white' : ''}`}>
+              <Icon width={18} height={18} />
+            </span>
             {n.label}
           </button>
         )
@@ -120,35 +129,27 @@ function MobileNav({ view, setView }) {
 }
 
 function Topbar() {
-  const { reset } = useStore()
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-navy-900/[0.06] bg-canvas/80 px-5 py-3.5 backdrop-blur-xl sm:px-8">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-ink-900/[0.06] bg-canvas/85 px-5 py-3 backdrop-blur-xl sm:px-8">
       <div className="flex items-center gap-3 lg:hidden">
-        <Brand />
+        <Logo size="sm" />
       </div>
       <div className="relative hidden flex-1 max-w-md lg:block">
-        <IconSearch width={17} height={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
+        <IconSearch width={16} height={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-400" />
         <input
           placeholder="Поиск по сертификатам, судам, компаниям…"
-          className="field !rounded-full !bg-surface pl-10"
+          className="w-full rounded-full bg-white py-2 pl-10 pr-3 text-[13px] font-medium text-ink-900 shadow-soft outline-none ring-1 ring-ink-900/[0.05] transition-all duration-300 placeholder:text-ink-300 focus:ring-2 focus:ring-brand-500"
         />
       </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => {
-            if (confirm('Сбросить демо-данные к исходному состоянию?')) reset()
-          }}
-          className="btn-ghost !px-3"
-          title="Сбросить демо-данные"
-        >
-          <IconReset width={17} height={17} />
-          <span className="hidden sm:inline">Сброс</span>
-        </button>
-        <button className="relative grid h-9 w-9 place-items-center rounded-full text-ink-soft transition-colors hover:bg-navy-50">
-          <IconBell width={18} height={18} />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-canvas" />
-        </button>
-        <div className="grid h-9 w-9 place-items-center rounded-full bg-teal-500 text-[13px] font-bold text-white shadow-soft">
+      <div className="flex items-center gap-2.5">
+        <span className="hidden items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-soft ring-1 ring-ink-900/[0.05] sm:flex">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+          <span className="text-[12px] font-bold text-ink-700">Демо</span>
+        </span>
+        <div className="grid h-9 w-9 place-items-center rounded-full bg-brand-600 text-[12px] font-extrabold text-white shadow-soft">
           ТО
         </div>
       </div>
@@ -164,8 +165,8 @@ function Shell() {
       <Sidebar view={view} setView={setView} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main className="flex-1 px-5 py-6 sm:px-8 sm:py-8">
-          <div className="mx-auto max-w-[1180px] animate-fade-up" key={view}>
+        <main className="scroll-thin flex-1 px-5 py-6 sm:px-8 sm:py-8">
+          <div className="mx-auto max-w-[1200px] animate-fade-up" key={view}>
             <View setView={setView} />
           </div>
         </main>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, StageBadge, Tag, Modal, Field } from '../components/ui.jsx'
+import { PageHeader, StageBadge, Tag, IdChip, Modal, Field } from '../components/ui.jsx'
 import CertificateDoc from '../components/CertificateDoc.jsx'
 import { IconPlus, IconDoc, IconCheck, IconRoute } from '../components/icons.jsx'
 import { fmtMoney, calcPremium, computeWording, uid, SEAS } from '../lib/domain.js'
@@ -13,20 +13,20 @@ function premiumCounted(cert) {
 function CertCard({ cert, company, vessel }) {
   const premium = calcPremium(cert.sumInsured, cert.ratePct)
   return (
-    <div className="space-y-2">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="truncate font-display text-sm font-semibold text-ink">{cert.number}</p>
-          <p className="truncate text-[12px] text-ink-muted">{company?.name}</p>
-        </div>
-        <Tag color={premiumCounted(cert) ? 'emerald' : 'slate'}>{fmtMoney(premium)}</Tag>
+    <div>
+      <div className="flex items-center justify-between gap-2">
+        <IdChip>{cert.number}</IdChip>
+        <span className={`nums text-[13px] font-extrabold tracking-tight ${premiumCounted(cert) ? 'text-emerald-600' : 'text-ink-300'}`}>
+          {fmtMoney(premium)}
+        </span>
       </div>
-      <p className="truncate text-[12px] text-ink-soft">{cert.cargo}</p>
-      <div className="flex flex-wrap items-center gap-1">
+      <h4 className="mt-2 truncate text-[14px] font-bold tracking-tight text-ink-900">{company?.name}</h4>
+      <p className="mt-0.5 truncate text-[12px] font-medium text-ink-400">{cert.cargo}</p>
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-ink-900/[0.05] pt-2.5">
         {cert.seas.map((s) => (
           <Tag key={s} color="cyan">{s}</Tag>
         ))}
-        {vessel && <span className="truncate text-[11px] text-ink-muted">· {vessel.name}</span>}
+        {vessel && <span className="truncate text-[11px] font-medium text-ink-400">· {vessel.name}</span>}
       </div>
     </div>
   )
@@ -72,11 +72,11 @@ function CertModal({ cert, onClose, onOpenDoc }) {
         </div>
 
         {/* Premium block */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-navy-900 to-navy-700 p-4 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-glow">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-teal-300">Премия</p>
-            <p className="nums font-display text-2xl font-bold">{fmtMoney(premium)}</p>
-            <p className="text-[12px] text-navy-100">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-100">Премия</p>
+            <p className="nums text-[26px] font-extrabold tracking-tight">{fmtMoney(premium)}</p>
+            <p className="text-[12px] font-medium text-brand-100">
               {fmtMoney(cert.sumInsured)} × {cert.ratePct}% ·{' '}
               {counted ? 'учтена' : 'не учтена — нужен скан с печатью'}
             </p>
@@ -209,7 +209,7 @@ function NewCertModal({ open, onClose }) {
                   key={s.id}
                   type="button"
                   onClick={() => toggleSea(s.id)}
-                  className={`btn flex-1 ${form.seas.includes(s.id) ? 'bg-teal-500 text-white' : 'bg-navy-50 text-ink-soft'}`}
+                  className={`btn flex-1 ${form.seas.includes(s.id) ? 'bg-brand-600 text-white' : 'bg-canvas text-ink-500 ring-1 ring-ink-900/[0.06]'}`}
                 >
                   {s.id}
                 </button>
@@ -226,14 +226,14 @@ function NewCertModal({ open, onClose }) {
         </div>
 
         {/* live calc preview */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-navy-900 p-4 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-glow">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-teal-300">Расчётная премия</p>
-            <p className="nums font-display text-2xl font-bold">{fmtMoney(premium)}</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-100">Расчётная премия</p>
+            <p className="nums text-[26px] font-extrabold tracking-tight">{fmtMoney(premium)}</p>
           </div>
-          <div className="text-right text-[12px] text-navy-100">
+          <div className="text-right text-[12px] font-medium text-brand-100">
             <p>Вординг: <b className="text-white">{wording.title}</b></p>
-            {wording.notes[0] && <p className="text-amber-300">⚠ {wording.notes[0]}</p>}
+            {wording.notes[0] && <p className="text-amber-200">⚠ {wording.notes[0]}</p>}
           </div>
         </div>
 
