@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+  /* Tabular figures everywhere numbers matter */
+  .nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface rounded-2xl shadow-soft ring-1 ring-navy-900/[0.06];
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none;
+  }
+  .label {
+    @apply text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-muted;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold
+           transition-all duration-300 ease-spring active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-navy-900 text-white hover:bg-navy-800 shadow-soft;
+  }
+  .btn-teal {
+    @apply btn bg-teal-500 text-white hover:bg-teal-600 shadow-soft;
+  }
+  .btn-ghost {
+    @apply btn text-ink-soft hover:bg-navy-50;
+  }
+  .field {
+    @apply w-full rounded-xl bg-navy-50/60 ring-1 ring-navy-900/[0.06] px-3.5 py-2.5 text-sm text-ink
+           placeholder:text-ink-muted/70 outline-none transition-all duration-300 ease-spring
+           focus:ring-2 focus:ring-teal-400 focus:bg-white;
+  }
+}
+
+/* Custom thin scrollbars for the marine, machined feel */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(10, 31, 51, 0.18) transparent;
+}
+*::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(10, 31, 51, 0.16);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(10, 31, 51, 0.28);
+}
