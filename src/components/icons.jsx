@@ -118,6 +118,19 @@ export const IconDoc = I(
   </>,
 )
 export const IconAnchorPct = I(<path d="M19 5L5 19M8 7a2 2 0 1 0 0-.01M16 17a2 2 0 1 0 0-.01" />)
+export const IconColumns = I(
+  <>
+    <rect x="3" y="4" width="5" height="16" rx="1.5" />
+    <rect x="9.5" y="4" width="5" height="16" rx="1.5" />
+    <rect x="16" y="4" width="5" height="16" rx="1.5" />
+  </>,
+)
+export const IconList = I(
+  <>
+    <path d="M8 6h12M8 12h12M8 18h12" />
+    <path d="M4 6h.01M4 12h.01M4 18h.01" />
+  </>,
+)
 export const IconRoute = I(
   <>
     <circle cx="6" cy="6" r="2.2" />

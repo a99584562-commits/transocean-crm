@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, Tag, IdChip, DetailModal, BoardPage } from '../components/ui.jsx'
+import { PageHeader, Tag, IdChip, StageBadge, DetailModal, BoardPage, ViewToggle, ListView } from '../components/ui.jsx'
 import GenerateDialog from '../components/GenerateDialog.jsx'
 import { IconDoc } from '../components/icons.jsx'
 import { fmtMoney } from '../lib/domain.js'
@@ -91,6 +91,7 @@ export default function Claims() {
   const { db, certById, companyById, moveStage } = useStore()
   const [selId, setSelId] = useState(null)
   const [genId, setGenId] = useState(null)
+  const [view, setView] = useState('kanban')
 
   const openSum = db.claims.filter((c) => !['Возмещён', 'Отказ'].includes(c.stage)).reduce((s, c) => s + c.claimAmount, 0)
 
@@ -99,10 +100,20 @@ export default function Claims() {
   const company = cert ? companyById[cert.companyId] : null
   const genRecord = db.claims.find((c) => c.id === genId)
 
+  const columns = [
+    { key: 'num', label: '№', col: '0.9fr', render: (c) => <IdChip>{c.number}</IdChip> },
+    { key: 'type', label: 'Тип', col: '1.4fr', render: (c) => <span className="block truncate text-[13px] font-bold text-ink-900">{c.type}</span> },
+    { key: 'cert', label: 'Сертификат', col: '1fr', render: (c) => <span className="text-[12.5px] font-semibold text-ink-500">{certById[c.certificateId]?.number}</span> },
+    { key: 'ins', label: 'Страховщик', col: '1fr', render: (c) => <Tag color="brand">{c.insurer}</Tag> },
+    { key: 'sum', label: 'Сумма', col: '0.9fr', render: (c) => <span className="nums text-[13px] font-extrabold text-rose-600">{fmtMoney(c.claimAmount)}</span> },
+    { key: 'stage', label: 'Стадия', col: '1.2fr', render: (c) => <StageBadge pipeline="claims" stage={c.stage} /> },
+  ]
+
   return (
     <BoardPage
       header={
         <PageHeader eyebrow="Финансы" title="Убытки">
+          <ViewToggle value={view} onChange={setView} />
           <div className="rounded-full bg-surface px-4 py-2 text-[13px] font-semibold shadow-soft ring-1 ring-ink-900/[0.06]">
             <span className="text-ink-400">В работе </span>
             <span className="nums font-extrabold text-rose-600">{fmtMoney(openSum)}</span>
@@ -110,14 +121,18 @@ export default function Claims() {
         </PageHeader>
       }
     >
-      <Kanban
-        pipeline="claims"
-        items={db.claims}
-        onMove={(id, stage) => moveStage('claims', id, stage)}
-        onCardClick={(c) => setSelId(c.id)}
-        sumOf={(c) => c.claimAmount}
-        renderCard={(c) => <ClaimCard cl={c} cert={certById[c.certificateId]} />}
-      />
+      {view === 'kanban' ? (
+        <Kanban
+          pipeline="claims"
+          items={db.claims}
+          onMove={(id, stage) => moveStage('claims', id, stage)}
+          onCardClick={(c) => setSelId(c.id)}
+          sumOf={(c) => c.claimAmount}
+          renderCard={(c) => <ClaimCard cl={c} cert={certById[c.certificateId]} />}
+        />
+      ) : (
+        <ListView columns={columns} items={db.claims} onRowClick={(c) => setSelId(c.id)} />
+      )}
 
       {sel && (
         <ClaimDetail

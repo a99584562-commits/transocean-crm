@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage } from '../components/ui.jsx'
+import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage, ViewToggle, ListView } from '../components/ui.jsx'
 import GenerateDialog from '../components/GenerateDialog.jsx'
 import { IconPlus, IconCalendar, IconDoc } from '../components/icons.jsx'
 import { fmtDate, daysUntil, suggestPolicyStage, uid, INSURERS } from '../lib/domain.js'
@@ -166,26 +166,41 @@ export default function Policies() {
   const [selId, setSelId] = useState(null)
   const [creating, setCreating] = useState(false)
   const [genId, setGenId] = useState(null)
+  const [view, setView] = useState('kanban')
   const selected = db.policies.find((p) => p.id === selId)
   const genRecord = db.policies.find((p) => p.id === genId)
+
+  const columns = [
+    { key: 'num', label: '№', col: '0.9fr', render: (p) => <IdChip>{p.number}</IdChip> },
+    { key: 'co', label: 'Компания', col: '1.7fr', render: (p) => <span className="block truncate text-[13.5px] font-bold text-ink-900">{companyById[p.companyId]?.name}</span> },
+    { key: 'ins', label: 'Страховщик', col: '1.1fr', render: (p) => <Tag color="brand">{p.insurer}</Tag> },
+    { key: 'end', label: 'Окончание', col: '1.2fr', render: (p) => { const d = daysUntil(p.endDate); return <span className="text-[12.5px] font-semibold text-ink-500">{fmtDate(p.endDate)}{d != null ? ` · ${d} дн.` : ''}</span> } },
+    { key: 'auto', label: 'Продление', col: '0.9fr', render: (p) => (p.autoRenew ? <Tag color="emerald" dot>авто</Tag> : <Tag color="slate">ручное</Tag>) },
+    { key: 'stage', label: 'Стадия', col: '1.2fr', render: (p) => <StageBadge pipeline="policies" stage={p.stage} /> },
+  ]
 
   return (
     <BoardPage
       header={
         <PageHeader eyebrow="Операции" title="Генеральные полисы">
+          <ViewToggle value={view} onChange={setView} />
           <button onClick={() => setCreating(true)} className="btn-primary">
             <IconPlus width={17} height={17} /> Новый полис
           </button>
         </PageHeader>
       }
     >
-      <Kanban
-        pipeline="policies"
-        items={db.policies}
-        onMove={(id, stage) => moveStage('policies', id, stage)}
-        onCardClick={(p) => setSelId(p.id)}
-        renderCard={(p) => <PolicyCard p={p} company={companyById[p.companyId]} />}
-      />
+      {view === 'kanban' ? (
+        <Kanban
+          pipeline="policies"
+          items={db.policies}
+          onMove={(id, stage) => moveStage('policies', id, stage)}
+          onCardClick={(p) => setSelId(p.id)}
+          renderCard={(p) => <PolicyCard p={p} company={companyById[p.companyId]} />}
+        />
+      ) : (
+        <ListView columns={columns} items={db.policies} onRowClick={(p) => setSelId(p.id)} />
+      )}
 
       {selected && <PolicyDetail p={selected} onClose={() => setSelId(null)} onGenerate={(p) => { setSelId(null); setGenId(p.id) }} />}
       <NewPolicyModal open={creating} onClose={() => setCreating(false)} />

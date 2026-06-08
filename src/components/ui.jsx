@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { IconClose } from './icons.jsx'
+import { IconClose, IconColumns, IconList } from './icons.jsx'
 import { ACCENTS, PIPELINES, stageMeta } from '../lib/domain.js'
 
 // Render overlays on <body> so `position: fixed` is relative to the viewport,
@@ -228,6 +228,63 @@ export function BoardPage({ header, children }) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="px-5 pb-3 pt-6 sm:px-8">{header}</div>
       <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+    </div>
+  )
+}
+
+// Канбан / Список switch.
+export function ViewToggle({ value, onChange }) {
+  const opts = [
+    { id: 'kanban', icon: IconColumns, label: 'Канбан' },
+    { id: 'list', icon: IconList, label: 'Список' },
+  ]
+  return (
+    <div className="flex gap-1 rounded-full bg-ink-900/[0.05] p-1">
+      {opts.map((o) => {
+        const A = o.icon
+        const active = value === o.id
+        return (
+          <button
+            key={o.id}
+            onClick={() => onChange(o.id)}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-bold transition-all duration-300 ease-spring ${
+              active ? 'bg-white text-ink-900 shadow-soft' : 'text-ink-400 hover:text-ink-700'
+            }`}
+          >
+            <A width={15} height={15} />
+            <span className="hidden sm:inline">{o.label}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// Generic full-height table view. columns: [{ key, label, col, align, render(item) }]
+export function ListView({ columns, items, onRowClick }) {
+  const template = columns.map((c) => c.col || '1fr').join(' ')
+  return (
+    <div className="scroll-thin flex-1 overflow-auto px-5 pb-5 sm:px-8">
+      <div className="card min-w-[780px] overflow-hidden p-0">
+        <div className="grid items-center gap-4 border-b border-ink-900/[0.06] px-5 py-3" style={{ gridTemplateColumns: template }}>
+          {columns.map((c) => (
+            <span key={c.key} className={`label ${c.align === 'right' ? 'text-right' : ''}`}>{c.label}</span>
+          ))}
+        </div>
+        {items.map((it, i) => (
+          <button
+            key={it.id}
+            onClick={() => onRowClick?.(it)}
+            className="grid w-full items-center gap-4 px-5 py-3 text-left transition-colors hover:bg-ink-900/[0.025]"
+            style={{ gridTemplateColumns: template, borderTop: i === 0 ? 'none' : '1px solid rgba(13,19,38,0.05)' }}
+          >
+            {columns.map((c) => (
+              <div key={c.key} className={`min-w-0 ${c.align === 'right' ? 'flex justify-end' : ''}`}>{c.render(it)}</div>
+            ))}
+          </button>
+        ))}
+        {items.length === 0 && <div className="px-5 py-10 text-center text-[13px] font-medium text-ink-400">Пусто</div>}
+      </div>
     </div>
   )
 }

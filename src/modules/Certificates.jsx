@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../lib/store.jsx'
 import Kanban from '../components/Kanban.jsx'
-import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage } from '../components/ui.jsx'
+import { PageHeader, StageBadge, Tag, IdChip, Modal, DetailModal, Field, BoardPage, ViewToggle, ListView } from '../components/ui.jsx'
 import GenerateDialog from '../components/GenerateDialog.jsx'
 import { IconPlus, IconDoc, IconCheck, IconRoute } from '../components/icons.jsx'
 import { fmtMoney, calcPremium, computeWording, uid, SEAS } from '../lib/domain.js'
@@ -264,27 +264,43 @@ export default function Certificates() {
   const [selId, setSelId] = useState(null)
   const [creating, setCreating] = useState(false)
   const [genId, setGenId] = useState(null)
+  const [view, setView] = useState('kanban')
   const selected = db.certificates.find((c) => c.id === selId)
   const genRecord = db.certificates.find((c) => c.id === genId)
+
+  const columns = [
+    { key: 'num', label: '№', col: '0.85fr', render: (c) => <IdChip>{c.number}</IdChip> },
+    { key: 'co', label: 'Компания', col: '1.5fr', render: (c) => <span className="block truncate text-[13.5px] font-bold text-ink-900">{companyById[c.companyId]?.name}</span> },
+    { key: 'cargo', label: 'Груз', col: '1.2fr', render: (c) => <span className="block truncate text-[12.5px] font-semibold text-ink-500">{c.cargo}</span> },
+    { key: 'vessel', label: 'Судно', col: '1.1fr', render: (c) => <span className="block truncate text-[12.5px] font-semibold text-ink-500">{vesselById[c.vesselId]?.name}</span> },
+    { key: 'premium', label: 'Премия', col: '0.9fr', render: (c) => { const counted = premiumCounted(c); return <span className={`nums text-[13px] font-extrabold ${counted ? 'text-emerald-600' : 'text-ink-300'}`}>{fmtMoney(calcPremium(c.sumInsured, c.ratePct))}</span> } },
+    { key: 'seas', label: 'Моря', col: '0.8fr', render: (c) => <div className="flex flex-wrap gap-1">{c.seas.map((s) => <Tag key={s} color="cyan">{s}</Tag>)}</div> },
+    { key: 'stage', label: 'Стадия', col: '1.1fr', render: (c) => <StageBadge pipeline="certificates" stage={c.stage} /> },
+  ]
 
   return (
     <BoardPage
       header={
         <PageHeader eyebrow="Операции" title="Сертификаты">
+          <ViewToggle value={view} onChange={setView} />
           <button onClick={() => setCreating(true)} className="btn-primary">
             <IconPlus width={17} height={17} /> Новый сертификат
           </button>
         </PageHeader>
       }
     >
-      <Kanban
-        pipeline="certificates"
-        items={db.certificates}
-        onMove={(id, stage) => moveStage('certificates', id, stage)}
-        onCardClick={(c) => setSelId(c.id)}
-        sumOf={(c) => calcPremium(c.sumInsured, c.ratePct)}
-        renderCard={(c) => <CertCard cert={c} company={companyById[c.companyId]} vessel={vesselById[c.vesselId]} />}
-      />
+      {view === 'kanban' ? (
+        <Kanban
+          pipeline="certificates"
+          items={db.certificates}
+          onMove={(id, stage) => moveStage('certificates', id, stage)}
+          onCardClick={(c) => setSelId(c.id)}
+          sumOf={(c) => calcPremium(c.sumInsured, c.ratePct)}
+          renderCard={(c) => <CertCard cert={c} company={companyById[c.companyId]} vessel={vesselById[c.vesselId]} />}
+        />
+      ) : (
+        <ListView columns={columns} items={db.certificates} onRowClick={(c) => setSelId(c.id)} />
+      )}
 
       {selected && <CertDetail cert={selected} onClose={() => setSelId(null)} onGenerate={(c) => { setSelId(null); setGenId(c.id) }} />}
       <NewCertModal open={creating} onClose={() => setCreating(false)} />
